@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Container,
   Paper,
@@ -33,6 +33,7 @@ import {
   Download
 } from '@mui/icons-material';
 import Table from '../../components/Table';
+import { admin } from '../../services/api';
 
 const ActivityLogs = () => {
   const [filter, setFilter] = useState('all');
@@ -40,6 +41,25 @@ const ActivityLogs = () => {
   const [selectedLog, setSelectedLog] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [dateRange, setDateRange] = useState('today');
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      setLoading(true);
+      try {
+        const res = await admin.getLogs();
+        setLogs(res.data.data || []);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch activity logs');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLogs();
+  }, []);
 
   const columns = [
     {
@@ -110,20 +130,20 @@ const ActivityLogs = () => {
   ];
 
   // Sample data - replace with your actual data
-  const logs = [
-    {
-      id: 1,
-      user: {
-        name: 'John Doe',
-        role: 'Admin'
-      },
-      action: 'Created new user',
-      type: 'success',
-      timestamp: new Date(),
-      details: 'Created user account for Jane Smith'
-    },
-    // Add more logs...
-  ];
+  // const logs = [
+  //   {
+  //     id: 1,
+  //     user: {
+  //       name: 'John Doe',
+  //       role: 'Admin'
+  //     },
+  //     action: 'Created new user',
+  //     type: 'success',
+  //     timestamp: new Date(),
+  //     details: 'Created user account for Jane Smith'
+  //   },
+  //   // Add more logs...
+  // ];
 
   const handleExport = () => {
     // Add export logic

@@ -31,6 +31,7 @@ import {
   Business,
   Security
 } from '@mui/icons-material';
+import { admin } from '../../services/api';
 
 const CreateSubadmin = () => {
   const [activeStep, setActiveStep] = useState(0);
@@ -48,6 +49,9 @@ const CreateSubadmin = () => {
       inApp: true
     }
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   const steps = [
     'Basic Information',
@@ -75,13 +79,19 @@ const CreateSubadmin = () => {
     setActiveStep((prev) => prev - 1);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
     try {
-      // Add your submit logic here
+      await admin.createSubadmin(form);
       setSuccess('Subadmin created successfully!');
-      // Reset form or redirect
+      setForm({ name: '', email: '', password: '', department: '' });
     } catch (err) {
-      setError(err.message || 'Failed to create subadmin');
+      setError('Failed to create subadmin');
+    } finally {
+      setLoading(false);
     }
   };
 

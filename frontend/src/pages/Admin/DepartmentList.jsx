@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Container,
   Grid,
@@ -27,25 +27,32 @@ import {
   Assignment,
   MoreVert
 } from '@mui/icons-material';
+import { departments } from '../../services/api';
 
 const DepartmentList = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedDept, setSelectedDept] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [departmentsList, setDepartmentsList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Sample data - replace with your actual data
-  const departments = [
-    {
-      id: 1,
-      name: 'IT Department',
-      employeeCount: 15,
-      activeComplaints: 5,
-      subadmin: 'John Doe',
-      status: 'active'
-    },
-    // Add more departments...
-  ];
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      setLoading(true);
+      try {
+        const res = await departments.getAll();
+        setDepartmentsList(res.data.data || []);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch departments');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDepartments();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -86,7 +93,7 @@ const DepartmentList = () => {
         )}
 
         <Grid container spacing={3}>
-          {departments.map((dept) => (
+          {departmentsList.map((dept) => (
             <Grid item xs={12} sm={6} md={4} key={dept.id}>
               <Card sx={{ height: '100%' }}>
                 <CardContent>

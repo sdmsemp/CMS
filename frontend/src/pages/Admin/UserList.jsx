@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Container,
   Paper,
@@ -30,6 +30,7 @@ import {
   Block
 } from '@mui/icons-material';
 import Table from '../../components/Table';
+import { admin } from '../../services/api';
 
 const UserList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,6 +38,25 @@ const UserList = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [roleFilter, setRoleFilter] = useState('all');
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        const res = await admin.getAllUsers();
+        setUsers(res.data.data || []);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch users');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const columns = [
     {
@@ -105,18 +125,8 @@ const UserList = () => {
     }
   ];
 
-  // Sample data - replace with your actual data
-  const users = [
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      role: 'admin',
-      department: 'IT',
-      status: 'active'
-    },
-    // Add more users...
-  ];
+  // Remove the sample data, use fetched users
+  // const users = [ ... ];
 
   const handleEdit = (user) => {
     setSelectedUser(user);
@@ -178,11 +188,17 @@ const UserList = () => {
             </FormControl>
           </Box>
 
-          <Table
-            columns={columns}
-            data={users}
-            title="User List"
-          />
+          {loading ? (
+            <Typography>Loading users...</Typography>
+          ) : error ? (
+            <Typography color="error">{error}</Typography>
+          ) : (
+            <Table
+              columns={columns}
+              data={users}
+              title="User List"
+            />
+          )}
         </Paper>
 
         {/* Action Menu */}

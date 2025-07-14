@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "C:\\Users\\DELL\\Desktop\\project\\mern\\backend\\src\\logs\\.025a7e95d6749d693f7808a5feac4193aa42c440-audit.json",
+    "files": [
+        {
+            "date": 1752396485762,
+            "name": "C:\\Users\\DELL\\Desktop\\project\\mern\\backend\\src\\logs\\combined-2025-07-13.log",
+            "hash": "7cb7bd00d915d981a9f7e71d1254e1173db81e365a09b8e4f8ecf2dd71799429"
+        }
+    ],
+    "hashType": "sha256"
+}

@@ -1,0 +1,237 @@
+# Smart Backend Architecture Rules
+
+## 1. Request Handling Layer
+- Every request must flow through:
+  ```javascript
+  Request → Auth → Validation → Rate Limit → Controller → Service → Data Access
+  ```
+- Implementation Pattern:
+  ```javascript
+  router.post('/api/resource',
+    authenticateJWT,              // Authentication
+    authorizeRole(['admin']),     // Authorization
+    rateLimiter('standard'),      // Rate Limiting
+    validateSchema(resourceSchema),// Validation
+    resourceController.create     // Business Logic
+  );
+  ```
+
+## 2. Security Implementation
+- JWT Authentication with Refresh Tokens:
+  ```javascript
+  // Token structure
+  {
+    accessToken: { exp: '15m', httpOnly: true, secure: true },
+    refreshToken: { exp: '7d', rotation: true }
+  }
+  ```
+- Password Security:
+  ```javascript
+  // In User Service
+  const hashPassword = async (password) => {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+  }
+  ```
+
+
+## 3. Data Layer Optimization
+- Connection Pool Configuration:
+  ```javascript
+  // Database config
+  {
+    pool: {
+      max: 20,
+      min: 5,
+      idle: 10000,
+      acquire: 30000
+    }
+  }
+  ```
+- Caching Strategy:
+  ```javascript
+  // Cache hierarchy
+  {
+    memory: { ttl: '5m' },    // First level
+    redis: { ttl: '1h' },     // Second level
+    database: 'fallback'      // Final source
+  }
+  ```
+- Transaction Management:
+  ```javascript
+  // Transaction pattern
+  async function operation() {
+    const t = await sequelize.transaction();
+    try {
+      // Operations
+      await t.commit();
+    } catch (error) {
+      await t.rollback();
+      throw error;
+    }
+  }
+  ```
+
+## 4. Error Handling & Logging
+- Error Hierarchy:
+  ```javascript
+  // Error types
+  {
+    ValidationError: 400,
+    AuthenticationError: 401,
+    AuthorizationError: 403,
+    NotFoundError: 404,
+    BusinessError: 422,
+    ServerError: 500
+  }
+  ```
+- Logging Levels:
+  ```javascript
+  // Log configuration
+  {
+    error: 'errors.log',
+    security: 'security.log',
+    performance: 'metrics.log',
+    business: 'business.log'
+  }
+  ```
+
+## 5. Performance Optimization
+- Caching Rules:
+  * Cache GET requests: 5 minutes
+  * Cache user sessions: 1 hour
+  * Cache static data: 1 day
+  * Invalidate on write operations
+
+- Rate Limiting Rules:
+  * Public APIs: 100 requests/15min
+  * Authenticated: 1000 requests/15min
+  * Admin endpoints: 5000 requests/15min
+
+## 6. Code Organization
+- Service Layer Pattern:
+  ```javascript
+  class ResourceService {
+    constructor(repository, cache, logger) {
+      this.repository = repository;
+      this.cache = cache;
+      this.logger = logger;
+    }
+
+    async create(data) {
+      this.logger.info('Creating resource');
+      const validated = await this.validate(data);
+      const result = await this.repository.create(validated);
+      await this.cache.invalidate('resources');
+      return result;
+    }
+  }
+  ```
+
+## 7. Integration Rules
+- API Response Format:
+  ```javascript
+  {
+    success: boolean,
+    data?: any,
+    error?: {
+      code: string,
+      message: string,
+      details?: any
+    },
+    metadata: {
+      timestamp: string,
+      requestId: string
+    }
+  }
+  ```
+
+- Request Validation:
+  ```javascript
+  // Validation chain
+  const validateRequest = {
+    headers: headerSchema,
+    params: paramSchema,
+    query: querySchema,
+    body: bodySchema
+  }
+  ```
+
+
+
+
+  ```
+
+- Alerting Thresholds:
+  * Error Rate > 1%
+  * Response Time > 500ms
+  * CPU Usage > 80%
+  * Memory Usage > 85%
+
+## Implementation Examples
+
+### Authentication Flow:
+```javascript
+async function authenticate(req, res) {
+  try {
+    // 1. Validate Input
+    const { error } = loginSchema.validate(req.body);
+    if (error) throw new ValidationError(error);
+
+    // 2. Rate Limiting Check
+    await rateLimiter.checkLimit(req.ip);
+
+    // 3. Authentication
+    const user = await UserService.authenticate(req.body);
+    
+    // 4. Token Generation
+    const tokens = await TokenService.generateTokens(user);
+
+    // 5. Secure Response
+    setSecureCookies(res, tokens);
+    
+    // 6. Audit Logging
+    logger.security.info('User authenticated', { userId: user.id });
+
+    return res.json({ success: true });
+  } catch (error) {
+    handleError(error, req, res);
+  }
+}
+```
+
+### Data Operation Flow:
+```javascript
+async function createResource(data) {
+  const transaction = await sequelize.transaction();
+  
+  try {
+    // 1. Input Validation
+    const validated = await validateResource(data);
+
+    // 2. Business Logic
+    const resource = await ResourceService.create(validated, transaction);
+
+    // 3. Cache Management
+    await CacheService.invalidateRelated(resource);
+
+    // 4. Event Emission
+    await EventBus.emit('resource.created', resource);
+
+    // 5. Transaction Completion
+    await transaction.commit();
+
+    // 6. Metrics Update
+    metrics.increment('resource.created');
+
+    return resource;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+}
+```
+description:
+globs:
+alwaysApply: false
+---

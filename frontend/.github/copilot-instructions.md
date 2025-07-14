@@ -1,0 +1,3 @@
+<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
+
+This is a Vite + React + TailwindCSS project for a Complaint Management System. Use role-based pages, reusable components, axios for API calls, react-router-dom for routing, React context for authentication, and form validation with Joi or yup.Important make a ui more responsive,  user-friendly and accessible , MOdern UI. Ensure the code is modular, maintainable, and follows best practices for React development.

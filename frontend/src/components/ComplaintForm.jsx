@@ -1,0 +1,3 @@
+// ...existing code...
+// Use the ComplaintForm from /pages/User/ComplaintForm.jsx for reuse
+export { default } from '../pages/User/ComplaintForm';

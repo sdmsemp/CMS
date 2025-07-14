@@ -39,7 +39,7 @@ import { admin, departments } from '../../services/api';
 const CreateSubadmin = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
-  const [departments, setDepartments] = useState([]);
+  const [departmentList, setDepartmentList] = useState([]);
   const [departmentsLoading, setDepartmentsLoading] = useState(true);
   const [form, setForm] = useState({
     emp_id: '',
@@ -70,7 +70,7 @@ const CreateSubadmin = () => {
     try {
       const response = await departments.getAll();
       if (response.data && response.data.data) {  // Updated to access correct data structure
-        setDepartments(response.data.data);
+        setDepartmentList(response.data.data);
       } else {
         console.error('Invalid departments data:', response.data);
         setError('Failed to fetch departments: Invalid data format');
@@ -355,7 +355,7 @@ const CreateSubadmin = () => {
                         Loading departments...
                       </Box>
                     </MenuItem>
-                  ) : departments.length === 0 ? (
+                  ) : departmentList.length === 0 ? (
                     <MenuItem disabled>
                       <Box display="flex" alignItems="center" gap={1}>
                         <Business color="action" />
@@ -363,7 +363,7 @@ const CreateSubadmin = () => {
                       </Box>
                     </MenuItem>
                   ) : (
-                    departments.map((dept) => (
+                    departmentList.map((dept) => (
                       <MenuItem key={dept.dept_id} value={dept.dept_id}>
                         <Box display="flex" alignItems="center" gap={1}>
                           <Business color="action" />
@@ -376,7 +376,7 @@ const CreateSubadmin = () => {
                 {validation.dept_id && (
                   <FormHelperText error>{validation.dept_id}</FormHelperText>
                 )}
-                {!departmentsLoading && departments.length === 0 && (
+                {!departmentsLoading && departmentList.length === 0 && (
                   <FormHelperText>
                     No departments available. Please create a department first.
                   </FormHelperText>

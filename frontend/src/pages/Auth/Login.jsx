@@ -20,6 +20,7 @@ import {
   Lock
 } from '@mui/icons-material';
 import { AuthContext } from '../../context/AuthContext';
+import { getToken } from '../../utils/cookieStorage';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -37,24 +38,31 @@ const Login = () => {
     try {
       const success = await login(form.email, form.password);
       if (success) {
-        // Get user role from localStorage token
-        const token = localStorage.getItem('jwt');
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const role = payload.role;
+        // Get user role from cookie token
+        const token = getToken();
+        if (token) {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          const role = payload.role_id || payload.role;
 
-        // Navigate based on role
-        switch (role) {
-          case 'admin':
-            navigate('/admin/dashboard');
-            break;
-          case 'subadmin':
-            navigate('/subadmin/dashboard');
-            break;
-          case 'user':
-            navigate('/user/dashboard');
-            break;
-          default:
-            setError('Invalid user role');
+          // Navigate based on role
+          switch (role) {
+            case 1:
+            case 'admin':
+              navigate('/admin/dashboard');
+              break;
+            case 2:
+            case 'subadmin':
+              navigate('/subadmin/dashboard');
+              break;
+            case 3:
+            case 'user':
+              navigate('/user/dashboard');
+              break;
+            default:
+              setError('Invalid user role');
+          }
+        } else {
+          setError('Login failed: No token found');
         }
       } else {
         setError(authError || 'Login failed');

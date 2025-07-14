@@ -1,12 +1,17 @@
+require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const { User, Department } = require('../models');
 const { registerSchema, loginSchema } = require('../validation/authValidation');
 const { logger } = require('../utils/logger');
+const bcrypt = require('bcryptjs');
+const dotenv = require('dotenv');
+
+
 
 // Generate JWT tokens
 const generateTokens = (user) => {
   const payload = {
-    id: user.emp_id,
+    emp_id: user.emp_id,
     email: user.email,
     role_id: user.role_id,
     dept_id: user.dept_id
@@ -48,7 +53,6 @@ exports.register = async (req, res) => {
     const existingUser = await User.findOne({
       where: { email: req.body.email }
     });
-
     if (existingUser) {
       return res.status(409).json({
         success: false,
@@ -56,8 +60,18 @@ exports.register = async (req, res) => {
       });
     }
 
+    // Pass raw password as password_hash, let model hook hash it
+    const userData = {
+      emp_id: req.body.emp_id,
+      name: req.body.name,
+      email: req.body.email,
+      password_hash: req.body.password, // pass raw password
+      dept_id: req.body.dept_id,
+      role_id: req.body.role_id || 3 // default to user
+    };
+
     // Create user
-    const user = await User.create(req.body);
+    const user = await User.create(userData);
 
     // Generate tokens
     const tokens = generateTokens(user);
@@ -79,7 +93,7 @@ exports.register = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Registration error:', error, error.stack); // Add stack trace
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -140,7 +154,7 @@ exports.login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Login error:', error, error.stack); // Add stack trace
     res.status(500).json({
       success: false,
       error: 'Internal server error'

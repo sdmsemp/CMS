@@ -1,14 +1,30 @@
 
 import axios from 'axios';
+import { getToken, removeToken } from '../utils/cookieStorage';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  withCredentials: true // Important for cookies
 });
+
+// List of public routes that don't need authentication
+const publicRoutes = [
+  '/auth/register',
+  '/auth/login',
+  '/auth/refresh-token',
+  '/auth/vapid-public-key'
+];
 
 // Request interceptor for adding auth token
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('jwt');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  // Check if the route is public
+  const isPublicRoute = publicRoutes.some(route => config.url.includes(route));
+  
+  // Only add token for protected routes
+  if (!isPublicRoute) {
+    const token = getToken();
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
@@ -16,9 +32,9 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   response => response,
   error => {
-    if (error.response?.status === 401) {
-      // Handle token expiration
-      localStorage.removeItem('jwt');
+    // Only redirect to login for auth errors on protected routes
+    if (error.response?.status === 401 && !publicRoutes.some(route => error.config.url.includes(route))) {
+      removeToken();
       window.location.href = '/login';
     }
     return Promise.reject(error);
@@ -29,8 +45,9 @@ api.interceptors.response.use(
 export const auth = {
   register: (userData) => api.post('/auth/register', userData),
   login: (credentials) => api.post('/auth/login', credentials),
-  refreshToken: (refreshToken) => api.post('/auth/refresh-token', { refreshToken }),
+  refreshToken: () => api.post('/auth/refresh-token'),
   getVapidKey: () => api.get('/auth/vapid-public-key'),
+  validateToken: () => api.get('/auth/validate-token')
 };
 
 // Admin endpoints
@@ -50,9 +67,11 @@ export const roles = {
 
 // Department endpoints
 export const departments = {
-  create: (data) => api.post('/departments', data),
   getAll: () => api.get('/departments'),
   getById: (id) => api.get(`/departments/${id}`),
+  create: (data) => api.post('/departments', data),
+  update: (id, data) => api.put(`/departments/${id}`, data),
+  delete: (id) => api.delete(`/departments/${id}`)
 };
 
 // Complaint endpoints
@@ -75,8 +94,10 @@ export const notifications = {
 
 // Helper function to handle API errors
 export const handleApiError = (error) => {
-  const message = error.response?.data?.error || error.message || 'Something went wrong';
-  return { error: message };
+  if (error.response?.data) {
+    return error.response.data;
+  }
+  return { error: 'An unexpected error occurred' };
 };
 
 export default api;

@@ -13,8 +13,40 @@ const adminAuth = [authenticateJWT, superadminOnly];
  * @swagger
  * tags:
  *   name: Departments
- *   description: Department management endpoints (Superadmin only)
+ *   description: Department management endpoints
  */
+
+/**
+ * @swagger
+ * /api/departments:
+ *   get:
+ *     summary: Get all departments (Public)
+ *     tags: [Departments]
+ *     responses:
+ *       200:
+ *         description: List of departments retrieved successfully
+ */
+router.get('/', departmentController.getAllDepartments);
+
+/**
+ * @swagger
+ * /api/departments/{id}:
+ *   get:
+ *     summary: Get department by ID (Public)
+ *     tags: [Departments]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Department retrieved successfully
+ *       404:
+ *         description: Department not found
+ */
+router.get('/:id', departmentController.getDepartmentById);
 
 /**
  * @swagger
@@ -86,6 +118,15 @@ router.post('/', adminAuth, async (req, res) => {
  *               name:
  *                 type: string
  *                 maxLength: 100
+ *     responses:
+ *       200:
+ *         description: Department updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not a superadmin
+ *       404:
+ *         description: Department not found
  */
 router.put('/:id', adminAuth, async (req, res) => {
   try {
@@ -107,27 +148,9 @@ router.put('/:id', adminAuth, async (req, res) => {
 
 /**
  * @swagger
- * /api/departments:
- *   get:
- *     summary: Get all departments (Superadmin only)
- *     tags: [Departments]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of all departments
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden - Not a superadmin
- */
-router.get('/', adminAuth, departmentController.getAllDepartments);
-
-/**
- * @swagger
  * /api/departments/{id}:
- *   get:
- *     summary: Get department by ID (Superadmin only)
+ *   delete:
+ *     summary: Delete a department (Superadmin only)
  *     tags: [Departments]
  *     security:
  *       - bearerAuth: []
@@ -139,7 +162,7 @@ router.get('/', adminAuth, departmentController.getAllDepartments);
  *           type: integer
  *     responses:
  *       200:
- *         description: Department details
+ *         description: Department deleted successfully
  *       401:
  *         description: Unauthorized
  *       403:
@@ -147,6 +170,6 @@ router.get('/', adminAuth, departmentController.getAllDepartments);
  *       404:
  *         description: Department not found
  */
-router.get('/:id', adminAuth, departmentController.getDepartmentById);
+router.delete('/:id', adminAuth, departmentController.deleteDepartment);
 
 module.exports = router; 

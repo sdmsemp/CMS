@@ -35,7 +35,7 @@ const Register = () => {
     name: '',
     empId: '',
     email: '',
-    password: '',
+    password_hash: '',
     confirmPassword: '',
     deptId: ''
   });
@@ -117,11 +117,15 @@ const Register = () => {
         dept_id: parseInt(form.deptId)
       });
       
-      // Store the token
-      localStorage.setItem('jwt', data.data.tokens.accessToken);
+      // Show success message
+      setError('');
       
-      // Redirect to login
-      navigate('/login');
+      // Redirect to login since user should verify their credentials
+      navigate('/login', { 
+        state: { 
+          message: 'Registration successful! Please login with your credentials.' 
+        } 
+      });
     } catch (err) {
       const errorData = handleApiError(err);
       setError(errorData.error);

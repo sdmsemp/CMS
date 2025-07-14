@@ -108,6 +108,7 @@ const seedAdmin = async () => {
 
     if (!adminExists) {
       const adminData = {
+        emp_id: 100,  // Added emp_id
         name: 'Super Admin',
         email: 'admin@starkdigital.in',
         password: 'Admin@123456', // Contains special char @ and two digits 12
@@ -123,7 +124,7 @@ const seedAdmin = async () => {
       }
 
       await db.User.create({
-        emp_id: 100,
+        emp_id: adminData.emp_id,
         name: adminData.name,
         email: adminData.email,
         password_hash: adminData.password,

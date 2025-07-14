@@ -11,6 +11,19 @@ const registerSchema = Joi.object({
       'any.required': 'Name is required'
     }),
 
+  emp_id: Joi.number()
+    .integer()
+    .min(100)
+    .max(999)
+    .required()
+    .messages({
+      'number.base': 'Employee ID must be a number',
+      'number.integer': 'Employee ID must be an integer',
+      'number.min': 'Employee ID must be at least 100',
+      'number.max': 'Employee ID must not exceed 999',
+      'any.required': 'Employee ID is required'
+    }),
+
   email: Joi.string()
     .email()
     .pattern(/@starkdigital\.in$/)

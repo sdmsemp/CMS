@@ -160,4 +160,53 @@ exports.getDepartmentById = async (req, res) => {
       error: 'Internal server error'
     });
   }
+};
+
+/**
+ * Delete a department
+ * @route DELETE /api/departments/:id
+ * @access Private (Superadmin only)
+ */
+exports.deleteDepartment = async (req, res) => {
+  try {
+    const department = await Department.findByPk(req.params.id);
+
+    if (!department) {
+      return res.status(404).json({
+        success: false,
+        error: 'Department not found'
+      });
+    }
+
+    // Check if department has any users
+    const usersCount = await User.count({
+      where: { dept_id: req.params.id }
+    });
+
+    if (usersCount > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot delete department with assigned users'
+      });
+    }
+
+    // Delete department
+    await department.destroy();
+
+    logger.info(`Department deleted: ${department.name}`, {
+      dept_id: department.dept_id,
+      deleted_by: req.user.emp_id
+    });
+
+    res.json({
+      success: true,
+      message: 'Department deleted successfully'
+    });
+  } catch (error) {
+    logger.error('Delete department error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
 }; 

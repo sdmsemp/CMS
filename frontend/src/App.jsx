@@ -47,7 +47,7 @@ const App = () => (
             <main>
               <div className="w-full max-w-5xl mx-auto">
                 <Routes>
-                  <Route path="/" element={<Navigate to="/register" />} />
+                  <Route path="/" element={<Navigate to="/Register" />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/user/dashboard" element={

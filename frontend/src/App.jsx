@@ -10,48 +10,78 @@ import Dashboard from './pages/Admin/Dashboard';
 import UserList from './pages/Admin/UserList';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
+import Register from './pages/Auth/Register';
+// MUI imports
+import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
+// Custom MUI theme with modern light green and white
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#43a047', // modern light green
+      contrastText: '#fff',
+    },
+    background: {
+      default: '#f8fff6', // very light green/white
+      paper: '#ffffff',
+    },
+    secondary: {
+      main: '#8bc34a', // lighter green
+    },
+  },
+  typography: {
+    fontFamily: 'Roboto, Arial, sans-serif',
+  },
+});
 
 const App = () => (
-  <AuthProvider>
-    <BrowserRouter>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-200 flex flex-col">
-        <Navbar />
-        <main className="flex-1 flex justify-center items-start py-8 px-2 sm:px-6">
-          <div className="w-full max-w-5xl mx-auto">
-            <Routes>
-              <Route path="/" element={<Navigate to="/Register" />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/user/dashboard" element={
-                <PrivateRoute allowedRoles={["user"]}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <ComplaintList complaints={[]} />
-                    <ComplaintForm onSubmit={() => {}} />
-                  </div>
-                </PrivateRoute>
-              } />
-              <Route path="/subadmin/dashboard" element={
-                <PrivateRoute allowedRoles={["subadmin"]}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <ComplaintView complaints={[]} onFilter={() => {}} />
-                    <TaskForm onSubmit={() => {}} />
-                  </div>
-                </PrivateRoute>
-              } />
-              <Route path="/admin/dashboard" element={
-                <PrivateRoute allowedRoles={["admin"]}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Dashboard />
-                    <UserList users={[]} />
-                  </div>
-                </PrivateRoute>
-              } />
-            </Routes>
+  <ThemeProvider theme={theme}>
+    <CssBaseline />
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <AuthProvider>
+        <BrowserRouter>
+          <div>
+            <Navbar />
+            <main>
+              <div className="w-full max-w-5xl mx-auto">
+                <Routes>
+                  <Route path="/" element={<Navigate to="/register" />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/user/dashboard" element={
+                    <PrivateRoute allowedRoles={["user"]}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <ComplaintList complaints={[]} />
+                        <ComplaintForm onSubmit={() => {}} />
+                      </div>
+                    </PrivateRoute>
+                  } />
+                  <Route path="/subadmin/dashboard" element={
+                    <PrivateRoute allowedRoles={["subadmin"]}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <ComplaintView complaints={[]} onFilter={() => {}} />
+                        <TaskForm onSubmit={() => {}} />
+                      </div>
+                    </PrivateRoute>
+                  } />
+                  <Route path="/admin/dashboard" element={
+                    <PrivateRoute allowedRoles={["admin"]}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Dashboard />
+                        <UserList users={[]} />
+                      </div>
+                    </PrivateRoute>
+                  } />
+                </Routes>
+              </div>
+            </main>
           </div>
-        </main>
-      </div>
-    </BrowserRouter>
-  </AuthProvider>
+        </BrowserRouter>
+      </AuthProvider>
+    </LocalizationProvider>
+  </ThemeProvider>
 );
 
 export default App;

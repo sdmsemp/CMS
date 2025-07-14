@@ -1,21 +1,65 @@
 import React from 'react';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Chip,
+  Avatar,
+  Stack,
+  Divider
+} from '@mui/material';
+import {
+  Assignment,
+  Business,
+  Schedule
+} from '@mui/icons-material';
 
 const severityColors = {
-  High: 'bg-red-500',
-  Medium: 'bg-yellow-500',
-  Low: 'bg-green-500',
+  High: 'error',
+  Medium: 'warning',
+  Low: 'success'
 };
 
 const ComplaintCard = ({ complaint }) => (
-  <div className="border rounded p-4 shadow-md bg-white">
-    <div className="flex justify-between items-center mb-2">
-      <h3 className="font-bold text-lg">{complaint.title}</h3>
-      <span className={`px-2 py-1 rounded text-white text-xs ${severityColors[complaint.severity]}`}>{complaint.severity}</span>
-    </div>
-    <p className="mb-2">{complaint.description}</p>
-    <div className="text-sm text-gray-600">Department: {complaint.department}</div>
-    <div className="text-sm text-gray-600">Status: {complaint.status}</div>
-  </div>
+  <Card elevation={2}>
+    <CardContent>
+      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Avatar sx={{ bgcolor: 'primary.main' }}>
+            <Assignment />
+          </Avatar>
+          <Typography variant="h6">{complaint.title}</Typography>
+        </Box>
+        <Chip
+          label={complaint.severity}
+          color={severityColors[complaint.severity]}
+          size="small"
+        />
+      </Box>
+      
+      <Typography variant="body2" color="text.secondary" mb={2}>
+        {complaint.description}
+      </Typography>
+      
+      <Divider sx={{ my: 2 }} />
+      
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Box display="flex" alignItems="center" gap={1}>
+          <Business fontSize="small" color="action" />
+          <Typography variant="body2" color="text.secondary">
+            {complaint.department}
+          </Typography>
+        </Box>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Schedule fontSize="small" color="action" />
+          <Typography variant="body2" color="text.secondary">
+            {complaint.status}
+          </Typography>
+        </Box>
+      </Stack>
+    </CardContent>
+  </Card>
 );
 
 export default ComplaintCard;

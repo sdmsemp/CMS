@@ -1,23 +1,134 @@
-import React, { useEffect, useState } from 'react';
-import api from '../services/api';
+import { useState } from 'react';
+import {
+  IconButton,
+  Badge,
+  Menu,
+  MenuItem,
+  Typography,
+  Box,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Avatar,
+  Divider,
+  Button,
+  Tooltip
+} from '@mui/material';
+import {
+  Notifications,
+  Circle,
+  CheckCircle,
+  Warning,
+  Info
+} from '@mui/icons-material';
 
 const NotificationBell = () => {
-  const [count, setCount] = useState(0);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [notifications, setNotifications] = useState([]);
 
-  useEffect(() => {
-    api.get('/notifications/unread')
-      .then(res => setCount(res.data.count || 0));
-  }, []);
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const getNotificationIcon = (type) => {
+    switch(type) {
+      case 'warning': return <Warning color="warning" />;
+      case 'success': return <CheckCircle color="success" />;
+      case 'error': return <Circle color="error" />;
+      default: return <Info color="info" />;
+    }
+  };
 
   return (
-    <div className="relative">
-      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-      </svg>
-      {count > 0 && (
-        <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">{count}</span>
-      )}
-    </div>
+    <>
+      <Tooltip title="Notifications">
+        <IconButton
+          color="inherit"
+          onClick={(e) => setAnchorEl(e.currentTarget)}
+        >
+          <Badge badgeContent={unreadCount} color="error">
+            <Notifications />
+          </Badge>
+        </IconButton>
+      </Tooltip>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+        PaperProps={{
+          sx: {
+            width: 360,
+            maxHeight: 400,
+          }
+        }}
+      >
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between' }}>
+          <Typography variant="h6">Notifications</Typography>
+          {unreadCount > 0 && (
+            <Button
+              size="small"
+              onClick={() => {/* mark all as read */}}
+            >
+              Mark all as read
+            </Button>
+          )}
+        </Box>
+        <Divider />
+        
+        <List sx={{ p: 0 }}>
+          {notifications.length > 0 ? (
+            notifications.map((notification, index) => (
+              <React.Fragment key={notification.id}>
+                <ListItem
+                  alignItems="flex-start"
+                  sx={{
+                    bgcolor: notification.read ? 'inherit' : 'action.hover',
+                    '&:hover': { bgcolor: 'action.hover' }
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Avatar>
+                      {getNotificationIcon(notification.type)}
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={notification.title}
+                    secondary={
+                      <>
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          color="text.primary"
+                        >
+                          {notification.message}
+                        </Typography>
+                        <br />
+                        <Typography
+                          component="span"
+                          variant="caption"
+                          color="text.secondary"
+                        >
+                          {new Date(notification.timestamp).toLocaleString()}
+                        </Typography>
+                      </>
+                    }
+                  />
+                </ListItem>
+                {index < notifications.length - 1 && <Divider />}
+              </React.Fragment>
+            ))
+          ) : (
+            <ListItem>
+              <ListItemText
+                primary="No notifications"
+                secondary="You're all caught up!"
+                sx={{ textAlign: 'center' }}
+              />
+            </ListItem>
+          )}
+        </List>
+      </Menu>
+    </>
   );
 };
 

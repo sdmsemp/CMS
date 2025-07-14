@@ -8,13 +8,13 @@ const Role = sequelize.define('Role', {
     validate: {
       isIn: [[1, 2, 3]]
     },
-    comment: '1=superadmin, 2=subadmin, 3=user'
+    comment: '1=superadmin, 2=subadmin, 3=employee'
   },
   role: {
     type: DataTypes.STRING,
     allowNull: false,
     validate: {
-      isIn: [['superadmin', 'subadmin', 'user']]
+      isIn: [['superadmin', 'subadmin', 'employee']]
     }
   }
 }, {

@@ -4,6 +4,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const db = require('./models');
 const { deleteOldNotifications } = require('./controllers/notificationController');
+const { initializeData } = require('./seeds/initializeData');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -48,9 +49,18 @@ app.use((err, req, res, next) => {
   const PORT = process.env.PORT || 5000;
 
   // Sync database and start server
-  db.sequelize.sync({ alter: true })
-    .then(() => {
+  db.sequelize.sync({ force: true, alter: true })
+    .then(async () => {
       console.log('Database connection established successfully.');
+      
+      // Initialize data (roles, departments, admin)
+      try {
+        await initializeData();
+        console.log('Data initialization completed');
+      } catch (error) {
+        console.error('Data initialization failed:', error);
+        // Continue server startup even if initialization fails
+      }
       
       // Start the server
       app.listen(PORT, () => {

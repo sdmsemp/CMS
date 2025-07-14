@@ -7,24 +7,24 @@ const createRoleSchema = Joi.object({
     .required()
     .messages({
       'number.base': 'Role ID must be a number',
-      'any.only': 'Role ID must be 1 (superadmin), 2 (subadmin), or 3 (user)',
+      'any.only': 'Role ID must be 1 (superadmin), 2 (subadmin), or 3 (employee)',
       'any.required': 'Role ID is required'
     }),
   role: Joi.string()
-    .valid('superadmin', 'subadmin', 'user')
+    .valid('superadmin', 'subadmin', 'employee')
     .required()
     .messages({
-      'any.only': 'Role must be superadmin, subadmin, or user',
+      'any.only': 'Role must be superadmin, subadmin, or employee',
       'any.required': 'Role is required'
     })
 });
 
 const updateRoleSchema = Joi.object({
   role: Joi.string()
-    .valid('superadmin', 'subadmin', 'user')
+    .valid('superadmin', 'subadmin', 'employee')
     .required()
     .messages({
-      'any.only': 'Role must be superadmin, subadmin, or user',
+      'any.only': 'Role must be superadmin, subadmin, or employee',
       'any.required': 'Role is required'
     })
 });

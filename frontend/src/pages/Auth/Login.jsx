@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Container,
@@ -19,9 +19,11 @@ import {
   Email,
   Lock
 } from '@mui/icons-material';
+import { AuthContext } from '../../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login, error: authError } = useContext(AuthContext);
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -33,8 +35,30 @@ const Login = () => {
     setError('');
 
     try {
-      // Add your login logic here
-      navigate('/dashboard');
+      const success = await login(form.email, form.password);
+      if (success) {
+        // Get user role from localStorage token
+        const token = localStorage.getItem('jwt');
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const role = payload.role;
+
+        // Navigate based on role
+        switch (role) {
+          case 'admin':
+            navigate('/admin/dashboard');
+            break;
+          case 'subadmin':
+            navigate('/subadmin/dashboard');
+            break;
+          case 'user':
+            navigate('/user/dashboard');
+            break;
+          default:
+            setError('Invalid user role');
+        }
+      } else {
+        setError(authError || 'Login failed');
+      }
     } catch (err) {
       setError(err.message || 'Login failed');
     } finally {

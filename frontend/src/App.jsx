@@ -8,6 +8,8 @@ import TaskForm from './pages/Subadmin/TaskForm';
 import ComplaintView from './pages/Subadmin/ComplaintView';
 import Dashboard from './pages/Admin/Dashboard';
 import UserList from './pages/Admin/UserList';
+import CreateSubadmin from './pages/Admin/CreateSubadmin';
+import CreateDepartment from './pages/Admin/CreateDepartment';
 import Navbar from './components/Navbar';
 import PrivateRoute from './components/PrivateRoute';
 import Register from './pages/Auth/Register';
@@ -50,6 +52,8 @@ const App = () => (
                   <Route path="/" element={<Navigate to="/Register" />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
+                  
+                  {/* User Routes */}
                   <Route path="/user/dashboard" element={
                     <PrivateRoute allowedRoles={["user"]}>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -58,6 +62,8 @@ const App = () => (
                       </div>
                     </PrivateRoute>
                   } />
+
+                  {/* Subadmin Routes */}
                   <Route path="/subadmin/dashboard" element={
                     <PrivateRoute allowedRoles={["subadmin"]}>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -66,12 +72,26 @@ const App = () => (
                       </div>
                     </PrivateRoute>
                   } />
+
+                  {/* Admin Routes */}
                   <Route path="/admin/dashboard" element={
                     <PrivateRoute allowedRoles={["admin"]}>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Dashboard />
-                        <UserList users={[]} />
-                      </div>
+                      <Dashboard />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/admin/create-subadmin" element={
+                    <PrivateRoute allowedRoles={["admin"]}>
+                      <CreateSubadmin />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/admin/create-department" element={
+                    <PrivateRoute allowedRoles={["admin"]}>
+                      <CreateDepartment />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/admin/users" element={
+                    <PrivateRoute allowedRoles={["admin"]}>
+                      <UserList users={[]} />
                     </PrivateRoute>
                   } />
                 </Routes>

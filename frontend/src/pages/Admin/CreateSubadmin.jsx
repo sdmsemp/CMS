@@ -21,7 +21,8 @@ import {
   InputAdornment,
   IconButton,
   CircularProgress,
-  Snackbar
+  Snackbar,
+  FormHelperText
 } from '@mui/material';
 import {
   PersonAdd,
@@ -33,12 +34,13 @@ import {
   Security,
   Badge
 } from '@mui/icons-material';
-import { admin } from '../../services/api';
+import { admin, departments } from '../../services/api';
 
 const CreateSubadmin = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [departments, setDepartments] = useState([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(true);
   const [form, setForm] = useState({
     emp_id: '',
     name: '',
@@ -63,11 +65,21 @@ const CreateSubadmin = () => {
   }, []);
 
   const fetchDepartments = async () => {
+    setDepartmentsLoading(true);
+    setError(null);
     try {
-      const response = await admin.getDepartments();
-      setDepartments(response.data);
+      const response = await departments.getAll();
+      if (response.data && response.data.data) {  // Updated to access correct data structure
+        setDepartments(response.data.data);
+      } else {
+        console.error('Invalid departments data:', response.data);
+        setError('Failed to fetch departments: Invalid data format');
+      }
     } catch (err) {
-      setError('Failed to fetch departments');
+      console.error('Error fetching departments:', err);
+      setError('Failed to fetch departments. Please try again later.');
+    } finally {
+      setDepartmentsLoading(false);
     }
   };
 
@@ -76,9 +88,12 @@ const CreateSubadmin = () => {
     
     // Employee ID validation
     if (form.emp_id) {
-      if (!/^\d{3}$/.test(form.emp_id)) {
-        newValidation.emp_id = 'Employee ID must be a 3-digit number';
+      const empId = parseInt(form.emp_id);
+      if (isNaN(empId) || empId < 100 || empId > 999) {
+        newValidation.emp_id = 'Employee ID must be a number between 100 and 999';
       }
+    } else if (activeStep === 0) {
+      newValidation.emp_id = 'Employee ID is required';
     }
 
     // Name validation
@@ -88,6 +103,8 @@ const CreateSubadmin = () => {
       } else if (!/^[a-zA-Z\s]+$/.test(form.name)) {
         newValidation.name = 'Name can only contain letters and spaces';
       }
+    } else if (activeStep === 0) {
+      newValidation.name = 'Name is required';
     }
 
     // Email validation
@@ -95,6 +112,8 @@ const CreateSubadmin = () => {
       if (!form.email.endsWith('@starkdigital.in')) {
         newValidation.email = 'Email must be a @starkdigital.in address';
       }
+    } else if (activeStep === 0) {
+      newValidation.email = 'Email is required';
     }
 
     // Password validation
@@ -104,6 +123,13 @@ const CreateSubadmin = () => {
       } else if (!/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(form.password)) {
         newValidation.password = 'Password must contain uppercase, lowercase, number and special character';
       }
+    } else if (activeStep === 0) {
+      newValidation.password = 'Password is required';
+    }
+
+    // Department validation
+    if (activeStep === 1 && !form.dept_id) {
+      newValidation.dept_id = 'Department is required';
     }
 
     setValidation(newValidation);
@@ -113,6 +139,11 @@ const CreateSubadmin = () => {
   const handleInputChange = (field) => (e) => {
     const value = e.target.value;
     setForm(prev => ({ ...prev, [field]: value }));
+    
+    // Clear validation error for the field being changed
+    setValidation(prev => ({ ...prev, [field]: '' }));
+    
+    // Validate immediately for better user feedback
     if (value) {
       validateForm();
     }
@@ -125,7 +156,7 @@ const CreateSubadmin = () => {
       handleSubmit();
     } else {
       if (validateForm()) {
-        setActiveStep((prev) => prev + 1);
+      setActiveStep((prev) => prev + 1);
       }
     }
   };
@@ -183,7 +214,23 @@ const CreateSubadmin = () => {
           </Box>
 
           {error && (
-            <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 3 }}>
+            <Alert 
+              severity="error" 
+              onClose={() => setError(null)} 
+              sx={{ mb: 3 }}
+              action={
+                error.includes('departments') && (
+                  <Button 
+                    color="inherit" 
+                    size="small" 
+                    onClick={fetchDepartments}
+                    startIcon={<Business />}
+                  >
+                    Retry Loading Departments
+                  </Button>
+                )
+              }
+            >
               {error}
             </Alert>
           )}
@@ -205,8 +252,13 @@ const CreateSubadmin = () => {
                   value={form.emp_id}
                   onChange={handleInputChange('emp_id')}
                   error={Boolean(validation.emp_id)}
-                  helperText={validation.emp_id}
+                  helperText={validation.emp_id || 'Enter a 3-digit number between 100 and 999'}
                   required
+                  type="number"
+                  inputProps={{
+                    min: 100,
+                    max: 999
+                  }}
                   placeholder="Enter 3-digit employee ID"
                   InputProps={{
                     startAdornment: (
@@ -282,25 +334,53 @@ const CreateSubadmin = () => {
             )}
 
             {activeStep === 1 && (
-              <FormControl fullWidth>
+              <FormControl fullWidth error={Boolean(validation.dept_id)}>
                 <InputLabel>Department</InputLabel>
                 <Select
                   value={form.dept_id}
                   label="Department"
                   onChange={handleInputChange('dept_id')}
                   required
+                  disabled={departmentsLoading}
                   startAdornment={
                     <InputAdornment position="start">
                       <Business color="action" />
                     </InputAdornment>
                   }
                 >
-                  {departments.map((dept) => (
-                    <MenuItem key={dept.dept_id} value={dept.dept_id}>
-                      {dept.name}
+                  {departmentsLoading ? (
+                    <MenuItem disabled>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <CircularProgress size={20} />
+                        Loading departments...
+                      </Box>
                     </MenuItem>
-                  ))}
+                  ) : departments.length === 0 ? (
+                    <MenuItem disabled>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Business color="action" />
+                        No departments available
+                      </Box>
+                    </MenuItem>
+                  ) : (
+                    departments.map((dept) => (
+                      <MenuItem key={dept.dept_id} value={dept.dept_id}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Business color="action" />
+                          {dept.name}
+                        </Box>
+                      </MenuItem>
+                    ))
+                  )}
                 </Select>
+                {validation.dept_id && (
+                  <FormHelperText error>{validation.dept_id}</FormHelperText>
+                )}
+                {!departmentsLoading && departments.length === 0 && (
+                  <FormHelperText>
+                    No departments available. Please create a department first.
+                  </FormHelperText>
+                )}
               </FormControl>
             )}
 
@@ -314,7 +394,7 @@ const CreateSubadmin = () => {
               <Button
                 variant="contained"
                 onClick={handleNext}
-                disabled={loading || !isStepValid()}
+                disabled={loading || !isStepValid() || (activeStep === 1 && departmentsLoading)}
                 startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
               >
                 {activeStep === steps.length - 1 ? (loading ? 'Creating...' : 'Create Subadmin') : 'Next'}

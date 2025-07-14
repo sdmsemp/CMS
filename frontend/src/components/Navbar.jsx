@@ -3,29 +3,47 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
   AppBar, Toolbar, Typography, Button, IconButton,
   Menu, MenuItem, useMediaQuery, useTheme,
-  Box, Avatar, Divider
+  Box, Avatar, Divider, ListItemIcon
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Person,
   Dashboard,
-  ExitToApp
+  ExitToApp,
+  PersonAdd,
+  Business,
+  People,
+  Assignment
 } from '@mui/icons-material';
 import NotificationBell from './NotificationBell';
+ import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
+  const [adminMenuAnchor, setAdminMenuAnchor] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const handleMenu = (event) => setAnchorEl(event.currentTarget);
   const handleUserMenu = (event) => setUserMenuAnchor(event.currentTarget);
+  const handleAdminMenu = (event) => setAdminMenuAnchor(event.currentTarget);
+  
   const handleClose = () => {
     setAnchorEl(null);
     setUserMenuAnchor(null);
+    setAdminMenuAnchor(null);
   };
+
+  const handleLogout = () => {
+    handleClose();
+    logout();
+    navigate('/login');
+  };
+
+  const isAdmin = user?.role_id === 1;
 
   return (
     <AppBar position="static" elevation={1}>
@@ -59,11 +77,59 @@ const Navbar = () => {
             <Button 
               color="inherit" 
               component={Link} 
-              to="/dashboard"
+              to={`/${user?.role}/dashboard`}
               startIcon={<Dashboard />}
             >
               Dashboard
             </Button>
+
+            {isAdmin && (
+              <>
+                <Button
+                  color="inherit"
+                  onClick={handleAdminMenu}
+                  startIcon={<Assignment />}
+                >
+                  Admin
+                </Button>
+                <Menu
+                  anchorEl={adminMenuAnchor}
+                  open={Boolean(adminMenuAnchor)}
+                  onClose={handleClose}
+                >
+                  <MenuItem 
+                    component={Link}
+                    to="/admin/create-subadmin"
+                    onClick={handleClose}
+                  >
+                    <ListItemIcon>
+                      <PersonAdd fontSize="small" />
+                    </ListItemIcon>
+                    Create Subadmin
+                  </MenuItem>
+                  <MenuItem 
+                    component={Link}
+                    to="/admin/create-department"
+                    onClick={handleClose}
+                  >
+                    <ListItemIcon>
+                      <Business fontSize="small" />
+                    </ListItemIcon>
+                    Create Department
+                  </MenuItem>
+                  <MenuItem 
+                    component={Link}
+                    to="/admin/users"
+                    onClick={handleClose}
+                  >
+                    <ListItemIcon>
+                      <People fontSize="small" />
+                    </ListItemIcon>
+                    Manage Users
+                  </MenuItem>
+                </Menu>
+              </>
+            )}
           </Box>
         )}
 
@@ -87,11 +153,50 @@ const Navbar = () => {
         >
           <MenuItem 
             component={Link} 
-            to="/dashboard" 
+            to={`/${user?.role}/dashboard`}
             onClick={handleClose}
           >
-            <Dashboard sx={{ mr: 1 }} /> Dashboard
+            <ListItemIcon>
+              <Dashboard fontSize="small" />
+            </ListItemIcon>
+            Dashboard
           </MenuItem>
+          
+          {isAdmin && (
+            <>
+              <Divider />
+              <MenuItem 
+                component={Link}
+                to="/admin/create-subadmin"
+                onClick={handleClose}
+              >
+                <ListItemIcon>
+                  <PersonAdd fontSize="small" />
+                </ListItemIcon>
+                Create Subadmin
+              </MenuItem>
+              <MenuItem 
+                component={Link}
+                to="/admin/create-department"
+                onClick={handleClose}
+              >
+                <ListItemIcon>
+                  <Business fontSize="small" />
+                </ListItemIcon>
+                Create Department
+              </MenuItem>
+              <MenuItem 
+                component={Link}
+                to="/admin/users"
+                onClick={handleClose}
+              >
+                <ListItemIcon>
+                  <People fontSize="small" />
+                </ListItemIcon>
+                Manage Users
+              </MenuItem>
+            </>
+          )}
         </Menu>
 
         {/* User Menu */}
@@ -101,17 +206,20 @@ const Navbar = () => {
           onClose={handleClose}
         >
           <MenuItem onClick={handleClose}>
-            <Person sx={{ mr: 1 }} /> Profile
+            <ListItemIcon>
+              <Person fontSize="small" />
+            </ListItemIcon>
+            Profile
           </MenuItem>
           <Divider />
           <MenuItem 
-            onClick={() => {
-              handleClose();
-              // Add logout logic
-            }}
+            onClick={handleLogout}
             sx={{ color: 'error.main' }}
           >
-            <ExitToApp sx={{ mr: 1 }} /> Logout
+            <ListItemIcon>
+              <ExitToApp fontSize="small" sx={{ color: 'error.main' }} />
+            </ListItemIcon>
+            Logout
           </MenuItem>
         </Menu>
       </Toolbar>

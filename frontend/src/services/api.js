@@ -53,8 +53,10 @@ export const auth = {
 // Admin endpoints
 export const admin = {
   getAllUsers: (roleId) => api.get('/admin/users', { params: { role_id: roleId } }),
-  createDepartment: (data) => api.post('/admin/department', data),
+  createDepartment: (data) => api.post('/departments', data), // Updated to use correct endpoint
   getLogs: (params) => api.get('/admin/logs', { params }),
+  getDepartments: () => api.get('/departments'), // Updated to use correct endpoint
+  createSubadmin: (data) => api.post('/admin/subadmin', data),
 };
 
 // Role endpoints

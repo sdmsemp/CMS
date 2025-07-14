@@ -12,7 +12,9 @@ import {
   LinearProgress,
   Tooltip,
   Tab,
-  Tabs
+  Tabs,
+  Button,
+  Stack
 } from '@mui/material';
 import {
   People,
@@ -21,8 +23,12 @@ import {
   TrendingUp,
   MoreVert,
   Assessment,
-  CalendarToday
+  CalendarToday,
+  PersonAdd,
+  Business,
+  Add as AddIcon
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -49,6 +55,7 @@ ChartJS.register(
 
 const Dashboard = () => {
   const [tabValue, setTabValue] = useState(0);
+  const navigate = useNavigate();
 
   const stats = [
     {
@@ -113,9 +120,27 @@ const Dashboard = () => {
   return (
     <Container maxWidth="xl">
       <Box py={3}>
-        <Typography variant="h4" gutterBottom>
-          Dashboard
-        </Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h4">
+            Dashboard
+          </Typography>
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="contained"
+              startIcon={<PersonAdd />}
+              onClick={() => navigate('/admin/create-subadmin')}
+            >
+              Create Subadmin
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<Business />}
+              onClick={() => navigate('/admin/create-department')}
+            >
+              Create Department
+            </Button>
+          </Stack>
+        </Box>
 
         <Grid container spacing={3}>
           {/* Stats Cards */}

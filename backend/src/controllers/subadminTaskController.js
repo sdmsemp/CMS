@@ -11,7 +11,7 @@ const { Op } = require('sequelize');
  */
 const getSubadminComplaints = async (req, res) => {
   try {
-    const subadminId = req.user.id;
+    const subadminId = req.user.emp_id;
     const deptId = req.user.dept_id;
 
     // Verify user is a subadmin
@@ -30,7 +30,7 @@ const getSubadminComplaints = async (req, res) => {
       include: [
         {
           model: User,
-          as: 'user',
+          //as: 'user',
           attributes: ['emp_id', 'name', 'email']
         },
         {
@@ -66,7 +66,7 @@ const getSubadminComplaints = async (req, res) => {
 const addTask = async (req, res) => {
   try {
     const { complaint_id, description } = req.body;
-    const subadminId = req.user.id;
+    const subadminId = req.user.emp_id;
 
     // Verify user is a subadmin
     if (req.user.role_id !== 2) {

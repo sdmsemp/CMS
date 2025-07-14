@@ -16,8 +16,10 @@ import {
   Add as AddIcon
 } from '@mui/icons-material';
 import { admin } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 const CreateDepartment = () => {
+  const { user } = useAuth();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -51,18 +53,30 @@ const CreateDepartment = () => {
     e.preventDefault();
     if (!validateName(name)) return;
 
+    // Check if user is admin
+    if (!user || user.role_id !== 1) {
+      setError('You do not have permission to create departments');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setSuccess(null);
 
     try {
-      await admin.createDepartment({ name: name.trim() });
-      setSuccess('Department created successfully!');
-      setName('');
-      // Reset form
-      setTimeout(() => setSuccess(null), 3000);
+      const response = await admin.createDepartment({ name: name.trim() });
+      if (response.data.success) {
+        setSuccess('Department created successfully!');
+        setName('');
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        throw new Error(response.data.error || 'Failed to create department');
+      }
     } catch (err) {
-      const errorMessage = err.response?.data?.error || 'Failed to create department';
+      console.error('Department creation error:', err);
+      const errorMessage = err.response?.data?.error || 
+                         err.message || 
+                         'Failed to create department. Please check your permissions and try again.';
       setError(errorMessage);
     } finally {
       setLoading(false);

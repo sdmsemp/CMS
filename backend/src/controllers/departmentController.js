@@ -25,15 +25,22 @@ exports.createDepartment = async (req, res) => {
       name: req.body.name
     });
 
-    logger.info(`Department created: ${department.name}`, {
-      dept_id: department.dept_id,
-      created_by: req.user.emp_id
-    });
-
+    // Send response first
     res.status(201).json({
       success: true,
       data: department
     });
+
+    // Log after sending response
+    try {
+      logger.info(`Department created: ${department.name}`, {
+        dept_id: department.dept_id,
+        created_by: req.user?.emp_id || 'unknown'
+      });
+    } catch (logError) {
+      console.error('Logging error:', logError);
+    }
+
   } catch (error) {
     logger.error('Create department error:', error);
     res.status(500).json({

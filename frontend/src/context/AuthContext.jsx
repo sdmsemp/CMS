@@ -9,6 +9,8 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const roleMap = { 1: "admin", 2: "subadmin", 3: "user" };
+
   // Check for existing token and validate it on mount
   useEffect(() => {
     const validateToken = async () => {
@@ -16,7 +18,8 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           const res = await api.get('/auth/validate-token');
-          setUser(res.data.user);
+          const user = res.data.user;
+          setUser({ ...user, role: roleMap[user.role_id] });
         } catch (err) {
           removeToken();
           setUser(null);
@@ -31,7 +34,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.post('/auth/login', { email, password });
       setToken(res.data.data.tokens.accessToken);
-      setUser(res.data.data.user);
+      const user = res.data.data.user;
+      setUser({ ...user, role: roleMap[user.role_id] });
       setError(null);
       return true;
     } catch (err) {

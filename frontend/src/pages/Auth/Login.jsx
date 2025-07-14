@@ -48,7 +48,9 @@ const Login = () => {
           switch (role) {
             case 1:
             case 'admin':
-              navigate('/admin/dashboard');
+              console.log('Navigating to admin dashboard')  
+            navigate('/admin/dashboard');
+              
               break;
             case 2:
             case 'subadmin':

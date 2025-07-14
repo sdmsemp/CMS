@@ -64,12 +64,19 @@ const App = () => (
                   } />
 
                   {/* Subadmin Routes */}
+                  <Route path="/subadmin/complaints" element={
+                    <PrivateRoute allowedRoles={["subadmin"]}>
+                      <ComplaintView />
+                    </PrivateRoute>
+                  } />
+                  <Route path="/subadmin/task/create" element={
+                    <PrivateRoute allowedRoles={["subadmin"]}>
+                      <TaskForm />
+                    </PrivateRoute>
+                  } />
                   <Route path="/subadmin/dashboard" element={
                     <PrivateRoute allowedRoles={["subadmin"]}>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <ComplaintView complaints={[]} onFilter={() => {}} />
-                        <TaskForm onSubmit={() => {}} />
-                      </div>
+                      <ComplaintView />
                     </PrivateRoute>
                   } />
 

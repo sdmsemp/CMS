@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
@@ -6,84 +6,121 @@ import {
   Box,
   TextField,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid,
   Stack,
-  Chip,
   Avatar,
-  IconButton,
   Alert,
-  Autocomplete,
-  InputAdornment,
-  Switch,
-  FormControlLabel,
-  Tooltip
+  CircularProgress,
+  Chip
 } from '@mui/material';
 import {
   Assignment,
   Send,
-  AttachFile,
-  AddAlarm,
-  Person,
-  Delete,
-  Schedule,
-  PriorityHigh
+  ArrowBack
 } from '@mui/icons-material';
-import { DateTimePicker } from '@mui/x-date-pickers';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { subadminTasks } from '../../services/api';
 
 const TaskForm = () => {
-  const [task, setTask] = useState({
-    title: '',
-    description: '',
-    priority: 'medium',
-    deadline: null,
-    assignees: [],
-    attachments: [],
-    notifications: true,
-    status: 'pending'
-  });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const complaint = location.state?.complaint;
 
-  // Sample data - replace with your actual data
-  const users = [
-    { id: 1, name: 'John Doe', department: 'IT' },
-    { id: 2, name: 'Jane Smith', department: 'HR' },
-    // Add more users...
-  ];
+  const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!complaint) {
+      setError('No complaint selected');
+    }
+  }, [complaint]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (description.length < 10 || description.length > 100) {
+      setError('Description must be between 10 and 100 characters');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
     try {
-      // Add your submit logic here
-      setSuccess('Task created successfully!');
-      setTask({
-        title: '',
-        description: '',
-        priority: 'medium',
-        deadline: null,
-        assignees: [],
-        attachments: [],
-        notifications: true,
-        status: 'pending'
+      const response = await subadminTasks.addTask({
+        complaint_id: complaint.complaint_id,
+        description: description.trim()
       });
+
+      if (response.data.success) {
+        // Navigate back to complaints view
+        navigate('/subadmin/complaints');
+      } else {
+        throw new Error(response.data.error || 'Failed to create task');
+      }
     } catch (err) {
-      setError(err.message || 'Failed to create task');
+      console.error('Error creating task:', err);
+      setError(err.response?.data?.error || 'Failed to create task');
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (!complaint) {
+    return (
+      <Container maxWidth="md">
+        <Box py={3}>
+          <Alert 
+            severity="error" 
+            action={
+              <Button color="inherit" size="small" onClick={() => navigate('/subadmin/complaints')}>
+                Go Back
+              </Button>
+            }
+          >
+            No complaint selected. Please select a complaint first.
+          </Alert>
+        </Box>
+      </Container>
+    );
+  }
+
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="md">
       <Box py={3}>
         <Paper elevation={3} sx={{ p: 4 }}>
+          {/* Header */}
           <Box display="flex" alignItems="center" gap={2} mb={4}>
             <Avatar sx={{ bgcolor: 'primary.main' }}>
               <Assignment />
             </Avatar>
-            <Typography variant="h5">Create Task</Typography>
+            <Typography variant="h5">Create Task Response</Typography>
+          </Box>
+
+          {/* Complaint Info */}
+          <Box mb={4} p={2} bgcolor="grey.50" borderRadius={1}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6">
+                Complaint #{complaint.complaint_id}
+              </Typography>
+              <Chip 
+                label={complaint.status} 
+                color={
+                  complaint.status === 'Pending' ? 'warning' :
+                  complaint.status === 'InProgress' ? 'info' :
+                  complaint.status === 'Complete' ? 'success' : 'default'
+                }
+              />
+            </Box>
+            <Typography variant="subtitle1" gutterBottom>
+              {complaint.title}
+            </Typography>
+            <Typography color="text.secondary" paragraph>
+              {complaint.description}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Submitted by: {complaint.User.name}
+            </Typography>
           </Box>
 
           {error && (
@@ -92,193 +129,42 @@ const TaskForm = () => {
             </Alert>
           )}
 
-          {success && (
-            <Alert severity="success" onClose={() => setSuccess('')} sx={{ mb: 3 }}>
-              {success}
-            </Alert>
-          )}
-
           <form onSubmit={handleSubmit}>
             <Stack spacing={3}>
               <TextField
                 fullWidth
-                label="Task Title"
-                value={task.title}
-                onChange={(e) => setTask({ ...task, title: e.target.value })}
+                multiline
+                rows={4}
+                label="Task Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 required
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Assignment color="action" />
-                    </InputAdornment>
-                  )
+                error={Boolean(error && error.includes('Description'))}
+                helperText="Description must be between 10 and 100 characters"
+                disabled={loading}
+                inputProps={{
+                  maxLength: 100,
+                  minLength: 10
                 }}
               />
 
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Description"
-                value={task.description}
-                onChange={(e) => setTask({ ...task, description: e.target.value })}
-                required
-              />
-
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth required>
-                    <InputLabel>Priority</InputLabel>
-                    <Select
-                      value={task.priority}
-                      label="Priority"
-                      onChange={(e) => setTask({ ...task, priority: e.target.value })}
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <PriorityHigh color="action" />
-                        </InputAdornment>
-                      }
-                    >
-                      <MenuItem value="low">
-                        <Chip size="small" label="Low" color="default" />
-                      </MenuItem>
-                      <MenuItem value="medium">
-                        <Chip size="small" label="Medium" color="warning" />
-                      </MenuItem>
-                      <MenuItem value="high">
-                        <Chip size="small" label="High" color="error" />
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <DateTimePicker
-                    label="Deadline"
-                    value={task.deadline}
-                    onChange={(newValue) => setTask({ ...task, deadline: newValue })}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        fullWidth
-                        required
-                        InputProps={{
-                          ...params.InputProps,
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Schedule color="action" />
-                            </InputAdornment>
-                          )
-                        }}
-                      />
-                    )}
-                  />
-                </Grid>
-              </Grid>
-
-              <Autocomplete
-                multiple
-                options={users}
-                getOptionLabel={(option) => option.name}
-                value={task.assignees}
-                onChange={(_, newValue) => setTask({ ...task, assignees: newValue })}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Assign To"
-                    placeholder="Select team members"
-                    required
-                    InputProps={{
-                      ...params.InputProps,
-                      startAdornment: (
-                        <>
-                          <InputAdornment position="start">
-                            <Person color="action" />
-                          </InputAdornment>
-                          {params.InputProps.startAdornment}
-                        </>
-                      )
-                    }}
-                  />
-                )}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip
-                      avatar={<Avatar>{option.name[0]}</Avatar>}
-                      label={`${option.name} (${option.department})`}
-                      {...getTagProps({ index })}
-                      size="small"
-                    />
-                  ))
-                }
-              />
-
-              <Box>
-                <input
-                  type="file"
-                  multiple
-                  style={{ display: 'none' }}
-                  id="task-attachments"
-                  onChange={(e) => {
-                    setTask({
-                      ...task,
-                      attachments: [...task.attachments, ...e.target.files]
-                    });
-                  }}
-                />
-                <label htmlFor="task-attachments">
-                  <Button
-                    component="span"
-                    startIcon={<AttachFile />}
-                    variant="outlined"
-                  >
-                    Add Attachments
-                  </Button>
-                </label>
-                {task.attachments.length > 0 && (
-                  <Box mt={2}>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Attachments:
-                    </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
-                      {task.attachments.map((file, index) => (
-                        <Chip
-                          key={index}
-                          label={file.name}
-                          onDelete={() => {
-                            const newAttachments = task.attachments.filter(
-                              (_, i) => i !== index
-                            );
-                            setTask({ ...task, attachments: newAttachments });
-                          }}
-                          sx={{ m: 0.5 }}
-                        />
-                      ))}
-                    </Stack>
-                  </Box>
-                )}
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Button
+                  startIcon={<ArrowBack />}
+                  onClick={() => navigate('/subadmin/complaints')}
+                  disabled={loading}
+                >
+                  Back to Complaints
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  startIcon={loading ? <CircularProgress size={20} /> : <Send />}
+                  disabled={loading || description.length < 10}
+                >
+                  {loading ? 'Submitting...' : 'Submit Response'}
+                </Button>
               </Box>
-
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={task.notifications}
-                    onChange={(e) =>
-                      setTask({ ...task, notifications: e.target.checked })
-                    }
-                  />
-                }
-                label="Enable notifications for this task"
-              />
-
-              <Button
-                type="submit"
-                variant="contained"
-                size="large"
-                startIcon={<Send />}
-              >
-                Create Task
-              </Button>
             </Stack>
           </form>
         </Paper>

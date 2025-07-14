@@ -10,58 +10,34 @@ import {
   Button,
   Grid,
   TextField,
-  MenuItem,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton,
-  Divider,
-  Stack,
-  Avatar,
-  Tooltip,
   FormControl,
   InputLabel,
   Select,
+  MenuItem,
+  Stack,
+  Avatar,
   InputAdornment,
   Alert,
   CircularProgress
 } from '@mui/material';
 import {
-  Timeline,
-  TimelineItem,
-  TimelineSeparator,
-  TimelineConnector,
-  TimelineContent,
-  TimelineDot,
-  TimelineOppositeContent
-} from '@mui/lab';
-import {
   Assignment,
   PriorityHigh,
   Schedule,
   Comment,
-  Send,
-  AttachFile,
-  Close,
   Search,
-  FilterList,
-  MoreVert,
-  Person,
-  Error as ErrorIcon,
-  Refresh
+  CheckCircle
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { subadminTasks } from '../../services/api';
 
 const ComplaintView = () => {
-  const [selectedComplaint, setSelectedComplaint] = useState(null);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [filter, setFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [response, setResponse] = useState('');
+  const navigate = useNavigate();
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filter, setFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchComplaints = async () => {
     setLoading(true);
@@ -85,22 +61,31 @@ const ComplaintView = () => {
     fetchComplaints();
   }, []);
 
-  const handleSubmitResponse = async () => {
+  const handleCompleteComplaint = async (complaint) => {
+    if (!window.confirm('Are you sure you want to mark this complaint as complete?')) {
+      return;
+    }
+
     try {
-      if (!selectedComplaint || !response.trim()) return;
+      setLoading(true);
+      // Get the task from the SubadminTasks array
+      const task = complaint.SubadminTasks && complaint.SubadminTasks[0];
+      
+      if (!task) {
+        throw new Error('Please create a task first before marking the complaint as complete');
+      }
 
-      await subadminTasks.addTask({
-        complaint_id: selectedComplaint.complaint_id,
-        description: response.trim()
-      });
-
-      // Refresh complaints after adding response
-      await fetchComplaints();
-      setResponse('');
-      setOpenDialog(false);
+      const response = await subadminTasks.completeTask(task.task_id);
+      if (response.data.success) {
+        await fetchComplaints();
+      } else {
+        throw new Error(response.data.error || 'Failed to complete task');
+      }
     } catch (err) {
-      console.error('Error submitting response:', err);
-      setError(err.response?.data?.error || 'Failed to submit response');
+      console.error('Error completing task:', err);
+      setError(err.response?.data?.error || err.message || 'Failed to complete task. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,9 +93,21 @@ const ComplaintView = () => {
     switch (status.toLowerCase()) {
       case 'pending': return 'warning';
       case 'inprogress': return 'info';
-      case 'complete': return 'success';
+      case 'complete':
+      case 'completed': return 'success';
       case 'rejected': return 'error';
       default: return 'default';
+    }
+  };
+
+  const formatStatus = (status) => {
+    switch (status.toLowerCase()) {
+      case 'pending': return 'Pending';
+      case 'inprogress': return 'In Progress';
+      case 'complete':
+      case 'completed': return 'Complete';
+      case 'rejected': return 'Rejected';
+      default: return status;
     }
   };
 
@@ -173,13 +170,6 @@ const ComplaintView = () => {
                 <MenuItem value="rejected">Rejected</MenuItem>
               </Select>
             </FormControl>
-            <Button
-              startIcon={<Refresh />}
-              onClick={fetchComplaints}
-              variant="outlined"
-            >
-              Refresh
-            </Button>
           </Stack>
         </Box>
 
@@ -222,59 +212,56 @@ const ComplaintView = () => {
                           </Typography>
                         </Box>
                       </Box>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Chip
-                          label={complaint.status}
-                          color={getStatusColor(complaint.status)}
-                          size="small"
-                        />
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            setSelectedComplaint(complaint);
-                            setOpenDialog(true);
-                          }}
-                        >
-                          <MoreVert />
-                        </IconButton>
-                      </Box>
+                      <Chip
+                        label={formatStatus(complaint.status)}
+                        color={getStatusColor(complaint.status)}
+                        size="small"
+                      />
                     </Box>
 
                     <Typography color="text.secondary" paragraph>
                       {complaint.description}
                     </Typography>
 
-                    <Box display="flex" alignItems="center" gap={3}>
-                      <Tooltip title="Priority Level">
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <PriorityHigh fontSize="small" color={getSeverityColor(complaint.severity)} />
-                          <Typography variant="body2" color="text.secondary">
-                            {complaint.severity.charAt(0).toUpperCase() + complaint.severity.slice(1)} Priority
-                          </Typography>
-                        </Box>
-                      </Tooltip>
-                      <Tooltip title="Submission Date">
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <Schedule fontSize="small" color="action" />
-                          <Typography variant="body2" color="text.secondary">
-                            {new Date(complaint.created_at).toLocaleString()}
-                          </Typography>
-                        </Box>
-                      </Tooltip>
+                    <Box display="flex" alignItems="center" gap={3} mb={2}>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <PriorityHigh fontSize="small" color={getSeverityColor(complaint.severity)} />
+                        <Typography variant="body2" color="text.secondary">
+                          {complaint.severity.charAt(0).toUpperCase() + complaint.severity.slice(1)} Priority
+                        </Typography>
+                      </Box>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Schedule fontSize="small" color="action" />
+                        <Typography variant="body2" color="text.secondary">
+                          {new Date(complaint.created_at).toLocaleString()}
+                        </Typography>
+                      </Box>
                     </Box>
 
-                    <Box display="flex" justifyContent="flex-end" mt={2}>
-                      <Button
-                        variant="contained"
-                        startIcon={<Comment />}
-                        onClick={() => {
-                          setSelectedComplaint(complaint);
-                          setOpenDialog(true);
-                        }}
-                        disabled={complaint.status === 'Complete' || complaint.status === 'Rejected'}
-                      >
-                        Respond
-                      </Button>
+                    <Box display="flex" justifyContent="flex-end" gap={2}>
+                      {complaint.status.toLowerCase() !== 'complete' && 
+                       complaint.status.toLowerCase() !== 'completed' && 
+                       complaint.status.toLowerCase() !== 'rejected' && (
+                        <>
+                          <Button
+                            variant="outlined"
+                            startIcon={<CheckCircle />}
+                            onClick={() => handleCompleteComplaint(complaint)}
+                            disabled={!complaint.SubadminTasks?.length}
+                          >
+                            Mark Complete
+                          </Button>
+                          <Button
+                            variant="contained"
+                            startIcon={<Comment />}
+                            onClick={() => navigate('/subadmin/task/create', { 
+                              state: { complaint } 
+                            })}
+                          >
+                            Respond
+                          </Button>
+                        </>
+                      )}
                     </Box>
                   </CardContent>
                 </Card>
@@ -282,117 +269,6 @@ const ComplaintView = () => {
             ))}
           </Grid>
         )}
-
-        <Dialog
-          open={openDialog}
-          onClose={() => setOpenDialog(false)}
-          maxWidth="md"
-          fullWidth
-        >
-          {selectedComplaint && (
-            <>
-              <DialogTitle>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                  <Typography variant="h6">
-                    Complaint #{selectedComplaint.complaint_id} - {selectedComplaint.title}
-                  </Typography>
-                  <IconButton onClick={() => setOpenDialog(false)}>
-                    <Close />
-                  </IconButton>
-                </Box>
-              </DialogTitle>
-              <DialogContent>
-                <Box mb={3}>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Status
-                  </Typography>
-                  <Chip
-                    label={selectedComplaint.status}
-                    color={getStatusColor(selectedComplaint.status)}
-                    size="small"
-                  />
-                </Box>
-
-                <Box mb={3}>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Description
-                  </Typography>
-                  <Typography>{selectedComplaint.description}</Typography>
-                </Box>
-
-                <Box mb={3}>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                    Submitted by
-                  </Typography>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <Person fontSize="small" />
-                    <Typography>
-                      {selectedComplaint.User.name} ({selectedComplaint.User.email})
-                    </Typography>
-                  </Box>
-                </Box>
-
-                {selectedComplaint.SubadminTasks?.length > 0 && (
-                  <>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Response History
-                    </Typography>
-                    <Timeline>
-                      {selectedComplaint.SubadminTasks.map((task, index) => (
-                        <TimelineItem key={task.task_id}>
-                          <TimelineOppositeContent color="text.secondary">
-                            {new Date(task.created_at).toLocaleString()}
-                          </TimelineOppositeContent>
-                          <TimelineSeparator>
-                            <TimelineDot color="primary" />
-                            {index < selectedComplaint.SubadminTasks.length - 1 && (
-                              <TimelineConnector />
-                            )}
-                          </TimelineSeparator>
-                          <TimelineContent>
-                            <Typography>{task.description}</Typography>
-                          </TimelineContent>
-                        </TimelineItem>
-                      ))}
-                    </Timeline>
-                  </>
-                )}
-
-                <Divider sx={{ my: 2 }} />
-
-                {selectedComplaint.status !== 'Complete' && selectedComplaint.status !== 'Rejected' && (
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={3}
-                    label="Add Response"
-                    value={response}
-                    onChange={(e) => setResponse(e.target.value)}
-                    placeholder="Type your response..."
-                    error={response.length > 0 && response.length < 10}
-                    helperText={response.length > 0 && response.length < 10 ? 
-                      "Response must be at least 10 characters long" : ""}
-                  />
-                )}
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={() => setOpenDialog(false)}>
-                  Close
-                </Button>
-                {selectedComplaint.status !== 'Complete' && selectedComplaint.status !== 'Rejected' && (
-                  <Button
-                    variant="contained"
-                    startIcon={<Send />}
-                    onClick={handleSubmitResponse}
-                    disabled={!response.trim() || response.length < 10}
-                  >
-                    Send Response
-                  </Button>
-                )}
-              </DialogActions>
-            </>
-          )}
-        </Dialog>
       </Box>
     </Container>
   );

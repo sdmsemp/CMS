@@ -87,7 +87,10 @@ export const complaints = {
 export const subadminTasks = {
   getComplaints: () => api.get('/subadmin/complaints'),
   addTask: (data) => api.post('/subadmin/tasks', data),
-  updateComplaintStatus: (complaintId, status) => api.put(`/complaints/${complaintId}/status`, { status })
+  updateComplaintStatus: (complaintId, status) => api.put(`/complaints/${complaintId}/status`, { status }),
+  completeTask: (taskId) => api.put(`/subadmin/tasks/${taskId}/complete`),
+  getTaskById: (taskId) => api.get(`/subadmin/tasks/${taskId}`),
+  getTaskForComplaint: (complaintId) => api.get(`/subadmin/tasks/complaint/${complaintId}`)
 };
 
 // Notification endpoints

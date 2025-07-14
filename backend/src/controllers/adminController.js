@@ -1,5 +1,6 @@
 const { User, Department, Complaint, sequelize } = require('../models');
 const { Op } = require('sequelize');
+const { createActivityLog } = require('../utils/activityLogger');
 
 // User Management
 exports.getAllUsers = async (req, res) => {
@@ -36,10 +37,40 @@ exports.getAllUsers = async (req, res) => {
 // Create Subadmin
 exports.createSubadmin = async (req, res) => {
   try {
+    const { emp_id, name, email, password, dept_id } = req.body;
+
+    // Validate required fields
+    if (!emp_id || !name || !email || !password || !dept_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields'
+      });
+    }
+
+    // Check if department exists
+    const department = await Department.findByPk(dept_id);
+    if (!department) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid department ID'
+      });
+    }
+
+    // Check if email already exists
+    const existingUser = await User.findOne({
+      where: { email }
+    });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email already registered'
+      });
+    }
+
     // Check if department already has a subadmin
     const existingSubadmin = await User.findOne({
       where: {
-        dept_id: req.body.dept_id,
+        dept_id,
         role_id: 2
       }
     });
@@ -51,17 +82,44 @@ exports.createSubadmin = async (req, res) => {
       });
     }
 
+    // Create subadmin with validated data
     const subadmin = await User.create({
-      ...req.body,
-      role_id: 2
+      emp_id,
+      name,
+      email,
+      password_hash: password, // Model hook will hash this
+      dept_id,
+      role_id: 2 // Subadmin role
+    });
+
+    // Log activity
+    await createActivityLog({
+      user_id: req.user.emp_id,
+      activity_type: 'CREATE',
+      description: `Created new subadmin: ${name} for department ${dept_id}`,
+      module: 'Admin'
     });
 
     res.status(201).json({
       success: true,
-      data: subadmin
+      data: {
+        emp_id: subadmin.emp_id,
+        name: subadmin.name,
+        email: subadmin.email,
+        dept_id: subadmin.dept_id,
+        role_id: subadmin.role_id
+      }
     });
   } catch (error) {
     console.error('Create subadmin error:', error);
+    
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({
+        success: false,
+        error: error.errors.map(e => e.message)
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -72,14 +130,51 @@ exports.createSubadmin = async (req, res) => {
 // Department Management
 exports.createDepartment = async (req, res) => {
   try {
-    const department = await Department.create(req.body);
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        error: 'Department name is required'
+      });
+    }
+
+    // Check if department with same name exists
+    const existingDepartment = await Department.findOne({
+      where: { name }
+    });
+
+    if (existingDepartment) {
+      return res.status(400).json({
+        success: false,
+        error: 'Department with this name already exists'
+      });
+    }
+
+    const department = await Department.create({ name });
     
+    // Log activity
+    await createActivityLog({
+      user_id: req.user.emp_id,
+      activity_type: 'CREATE',
+      description: `Created new department: ${name}`,
+      module: 'Admin'
+    });
+
     res.status(201).json({
       success: true,
       data: department
     });
   } catch (error) {
     console.error('Create department error:', error);
+    
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({
+        success: false,
+        error: error.errors.map(e => e.message)
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: 'Internal server error'

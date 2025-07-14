@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
@@ -11,10 +11,6 @@ import {
   Select,
   MenuItem,
   Grid,
-  Card,
-  CardContent,
-  Chip,
-  Avatar,
   IconButton,
   Button,
   Dialog,
@@ -22,8 +18,8 @@ import {
   DialogContent,
   DialogActions,
   Stack,
-  Tooltip,
-  Divider
+  Divider,
+  Alert
 } from '@mui/material';
 import {
   Timeline,
@@ -36,62 +32,45 @@ import {
 } from '@mui/lab';
 import {
   Search,
-  FilterList,
-  Assignment,
-  PriorityHigh,
-  Schedule,
-  MoreVert,
-  Comment,
   Close,
   Info
 } from '@mui/icons-material';
+import api from '../../services/api';
+import ComplaintCard from '../../components/ComplaintCard';
 
 const ComplaintList = () => {
-  const [filter, setFilter] = useState('all');
+  const [complaints, setComplaints] = useState([]);
+  const [filter, setFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Sample data - replace with your actual data
-  const complaints = [
-    {
-      id: 1,
-      title: 'Network Issues',
-      description: 'Unable to connect to the office network',
-      status: 'open',
-      priority: 'high',
-      department: 'IT',
-      createdAt: new Date(),
-      updates: [
-        {
-          id: 1,
-          message: 'Complaint received',
-          user: 'System',
-          timestamp: new Date(),
-          type: 'info'
-        }
-      ]
-    },
-    // Add more complaints...
-  ];
-
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case 'open': return 'error';
-      case 'in progress': return 'warning';
-      case 'resolved': return 'success';
-      default: return 'default';
+  const fetchComplaints = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (filter) params.append('status', filter);
+      
+      const response = await api.get(`/complaints?${params.toString()}`);
+      setComplaints(response.data.data);
+      setError('');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to fetch complaints');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getPriorityColor = (priority) => {
-    switch (priority.toLowerCase()) {
-      case 'high': return 'error';
-      case 'medium': return 'warning';
-      case 'low': return 'info';
-      default: return 'default';
-    }
-  };
+  useEffect(() => {
+    fetchComplaints();
+  }, [filter]);
+
+  const filteredComplaints = complaints.filter(complaint =>
+    complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    complaint.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <Container maxWidth="xl">
@@ -119,85 +98,32 @@ const ComplaintList = () => {
                 label="Status"
                 onChange={(e) => setFilter(e.target.value)}
               >
-                <MenuItem value="all">All Complaints</MenuItem>
-                <MenuItem value="open">Open</MenuItem>
-                <MenuItem value="in_progress">In Progress</MenuItem>
-                <MenuItem value="resolved">Resolved</MenuItem>
+                <MenuItem value="">All</MenuItem>
+                <MenuItem value="Pending">Pending</MenuItem>
+                <MenuItem value="InProgress">In Progress</MenuItem>
+                <MenuItem value="Complete">Complete</MenuItem>
+                <MenuItem value="Rejected">Rejected</MenuItem>
               </Select>
             </FormControl>
           </Stack>
         </Box>
 
+        {error && (
+          <Alert severity="error" onClose={() => setError('')} sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
         <Grid container spacing={3}>
-          {complaints.map((complaint) => (
-            <Grid item xs={12} key={complaint.id}>
-              <Card>
-                <CardContent>
-                  <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-                    <Box display="flex" alignItems="center" gap={2}>
-                      <Avatar sx={{ bgcolor: 'primary.main' }}>
-                        <Assignment />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="h6">{complaint.title}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {complaint.department}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Chip
-                        label={complaint.status}
-                        color={getStatusColor(complaint.status)}
-                        size="small"
-                      />
-                      <IconButton
-                        size="small"
-                        onClick={() => {
+          {filteredComplaints.map((complaint) => (
+            <Grid item xs={12} key={complaint.complaint_id}>
+              <ComplaintCard 
+                complaint={complaint}
+                onViewDetails={() => {
                           setSelectedComplaint(complaint);
                           setOpenDialog(true);
                         }}
-                      >
-                        <MoreVert />
-                      </IconButton>
-                    </Box>
-                  </Box>
-
-                  <Typography color="text.secondary" paragraph>
-                    {complaint.description}
-                  </Typography>
-
-                  <Box display="flex" alignItems="center" gap={3}>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <PriorityHigh fontSize="small" color="action" />
-                      <Chip
-                        label={`Priority: ${complaint.priority}`}
-                        color={getPriorityColor(complaint.priority)}
-                        size="small"
-                      />
-                    </Box>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Schedule fontSize="small" color="action" />
-                      <Typography variant="body2" color="text.secondary">
-                        Submitted: {new Date(complaint.createdAt).toLocaleString()}
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  <Box display="flex" justifyContent="flex-end" mt={2}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<Info />}
-                      onClick={() => {
-                        setSelectedComplaint(complaint);
-                        setOpenDialog(true);
-                      }}
-                    >
-                      View Details
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
+              />
             </Grid>
           ))}
         </Grid>
@@ -221,12 +147,16 @@ const ComplaintList = () => {
               <DialogContent>
                 <Box mb={3}>
                   <Typography variant="subtitle2" color="text.secondary">
+                    Title
+                  </Typography>
+                  <Typography variant="h6">{selectedComplaint.title}</Typography>
+                </Box>
+
+                <Box mb={3}>
+                  <Typography variant="subtitle2" color="text.secondary">
                     Status
                   </Typography>
-                  <Chip
-                    label={selectedComplaint.status}
-                    color={getStatusColor(selectedComplaint.status)}
-                  />
+                  <Typography>{selectedComplaint.status}</Typography>
                 </Box>
 
                 <Box mb={3}>
@@ -236,32 +166,23 @@ const ComplaintList = () => {
                   <Typography>{selectedComplaint.description}</Typography>
                 </Box>
 
+                <Box mb={3}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Severity
+                  </Typography>
+                  <Typography>{selectedComplaint.severity}</Typography>
+                </Box>
+
                 <Divider sx={{ my: 2 }} />
 
-                <Typography variant="h6" gutterBottom>
-                  Updates
+                <Box mb={3}>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Created At
                 </Typography>
-                <Timeline>
-                  {selectedComplaint.updates.map((update, index) => (
-                    <TimelineItem key={update.id}>
-                      <TimelineOppositeContent color="text.secondary">
-                        {new Date(update.timestamp).toLocaleString()}
-                      </TimelineOppositeContent>
-                      <TimelineSeparator>
-                        <TimelineDot color="primary" />
-                        {index < selectedComplaint.updates.length - 1 && (
-                          <TimelineConnector />
-                        )}
-                      </TimelineSeparator>
-                      <TimelineContent>
-                        <Typography>{update.message}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          By: {update.user}
+                  <Typography>
+                    {new Date(selectedComplaint.created_at).toLocaleString()}
                         </Typography>
-                      </TimelineContent>
-                    </TimelineItem>
-                  ))}
-                </Timeline>
+                </Box>
               </DialogContent>
               <DialogActions>
                 <Button onClick={() => setOpenDialog(false)}>Close</Button>

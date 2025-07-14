@@ -7,21 +7,37 @@ import {
   Chip,
   Avatar,
   Stack,
-  Divider
+  Divider,
+  Button
 } from '@mui/material';
 import {
   Assignment,
   Business,
-  Schedule
+  Schedule,
+  Info
 } from '@mui/icons-material';
 
-const severityColors = {
-  High: 'error',
-  Medium: 'warning',
-  Low: 'success'
+// Severity display mapping for proper capitalization in UI
+const severityDisplay = {
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High'
 };
 
-const ComplaintCard = ({ complaint }) => (
+const severityColors = {
+  low: 'success',
+  medium: 'warning',
+  high: 'error'
+};
+
+const statusColors = {
+  Pending: 'warning',
+  InProgress: 'info',
+  Complete: 'success',
+  Rejected: 'error'
+};
+
+const ComplaintCard = ({ complaint, onViewDetails }) => (
   <Card elevation={2}>
     <CardContent>
       <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
@@ -29,13 +45,25 @@ const ComplaintCard = ({ complaint }) => (
           <Avatar sx={{ bgcolor: 'primary.main' }}>
             <Assignment />
           </Avatar>
-          <Typography variant="h6">{complaint.title}</Typography>
+          <Box>
+            <Typography variant="h6">{complaint.title}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Department ID: {complaint.dept_id}
+            </Typography>
+          </Box>
         </Box>
-        <Chip
-          label={complaint.severity}
-          color={severityColors[complaint.severity]}
-          size="small"
-        />
+        <Stack direction="row" spacing={1}>
+          <Chip
+            label={complaint.status}
+            color={statusColors[complaint.status]}
+            size="small"
+          />
+          <Chip
+            label={severityDisplay[complaint.severity]}
+            color={severityColors[complaint.severity]}
+            size="small"
+          />
+        </Stack>
       </Box>
       
       <Typography variant="body2" color="text.secondary" mb={2}>
@@ -44,20 +72,22 @@ const ComplaintCard = ({ complaint }) => (
       
       <Divider sx={{ my: 2 }} />
       
-      <Stack direction="row" spacing={2} alignItems="center">
-        <Box display="flex" alignItems="center" gap={1}>
-          <Business fontSize="small" color="action" />
-          <Typography variant="body2" color="text.secondary">
-            {complaint.department}
-          </Typography>
-        </Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center">
         <Box display="flex" alignItems="center" gap={1}>
           <Schedule fontSize="small" color="action" />
           <Typography variant="body2" color="text.secondary">
-            {complaint.status}
+            {new Date(complaint.created_at).toLocaleString()}
           </Typography>
         </Box>
-      </Stack>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<Info />}
+          onClick={onViewDetails}
+        >
+          View Details
+        </Button>
+      </Box>
     </CardContent>
   </Card>
 );

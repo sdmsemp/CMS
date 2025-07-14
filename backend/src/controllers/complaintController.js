@@ -12,7 +12,31 @@ const { Op } = require('sequelize');
 const createComplaint = async (req, res) => {
   try {
     const { title, description, dept_id, severity } = req.body;
-    const emp_id = req.user.id;
+    const emp_id = req.user.emp_id; // Fixed: using emp_id instead of id
+
+    // Validate title length
+    if (!title || title.length < 3 || title.length > 25) {
+      return res.status(400).json({
+        success: false,
+        error: 'Title must be between 3 and 25 characters'
+      });
+    }
+
+    // Validate description length
+    if (!description || description.length < 10 || description.length > 100) {
+      return res.status(400).json({
+        success: false,
+        error: 'Description must be between 10 and 100 characters'
+      });
+    }
+
+    // Validate severity
+    // if (!['High', 'Medium', 'Low'].includes(severity)) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     error: 'Severity must be High, Medium, or Low'
+    //   });
+    // }
 
     // Create complaint
     const complaint = await Complaint.create({
@@ -20,8 +44,8 @@ const createComplaint = async (req, res) => {
       description,
       dept_id,
       emp_id,
-      severity,
-      status: 'new'
+      severity: severity.toLowerCase(),
+      status: 'Pending'
     });
 
     // Find subadmin of the department to notify
@@ -52,6 +76,21 @@ const createComplaint = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in createComplaint:', error);
+    
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({
+        success: false,
+        error: error.errors.map(e => e.message)
+      });
+    }
+    
+    if (error.name === 'SequelizeForeignKeyConstraintError') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid department ID'
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: 'Failed to create complaint'
@@ -67,9 +106,16 @@ const createComplaint = async (req, res) => {
 const getComplaintById = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user.id;
+    const userId = req.user.emp_id; // Fixed: using emp_id instead of id
     const userRole = req.user.role_id;
     const userDept = req.user.dept_id;
+
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid complaint ID'
+      });
+    }
 
     const complaint = await Complaint.findOne({
       where: { complaint_id: id },
@@ -124,16 +170,33 @@ const getComplaintById = async (req, res) => {
  */
 const getComplaints = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user.emp_id; // Fixed: using emp_id instead of id
     const userRole = req.user.role_id;
     const userDept = req.user.dept_id;
     const { status, severity } = req.query;
 
     let whereClause = {};
 
-    // Add filters if provided
-    if (status) whereClause.status = status;
-    if (severity) whereClause.severity = severity;
+    // Validate and add filters if provided
+    if (status) {
+      if (!['Pending', 'InProgress', 'Complete', 'Rejected'].includes(status)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid status value'
+        });
+      }
+      whereClause.status = status;
+    }
+
+    if (severity) {
+      if (!['low', 'medium', 'high'].includes(severity.toLowerCase())) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid severity value'
+        });
+      }
+      whereClause.severity = severity.toLowerCase();
+    }
 
     // Apply role-based filters
     if (userRole === 3) { // Regular user
@@ -148,7 +211,6 @@ const getComplaints = async (req, res) => {
       include: [
         {
           model: User,
-          as: 'user',
           attributes: ['emp_id', 'name', 'email']
         }
       ],
@@ -183,6 +245,21 @@ const updateComplaint = async (req, res) => {
     const userRole = req.user.role_id;
     const userDept = req.user.dept_id;
 
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid complaint ID'
+      });
+    }
+
+    // Validate status
+    if (!['Pending', 'InProgress', 'Complete', 'Rejected'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid status value. Must be one of: Pending, InProgress, Complete, Rejected'
+      });
+    }
+
     const complaint = await Complaint.findByPk(id);
 
     if (!complaint) {
@@ -204,7 +281,7 @@ const updateComplaint = async (req, res) => {
 
     // Log activity
     await createActivityLog({
-      user_id: req.user.id,
+      user_id: req.user.emp_id, // Fixed: using emp_id instead of id
       activity_type: 'UPDATE',
       description: `Updated complaint ${id} status to: ${status}`,
       module: 'Complaint'
@@ -217,6 +294,14 @@ const updateComplaint = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in updateComplaint:', error);
+    
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({
+        success: false,
+        error: error.errors.map(e => e.message)
+      });
+    }
+
     res.status(500).json({
       success: false,
       error: 'Failed to update complaint'

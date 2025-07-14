@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
@@ -17,10 +17,11 @@ import {
   Checkbox,
   Alert,
   Stack,
-  Chip,
   Avatar,
   InputAdornment,
-  IconButton
+  IconButton,
+  CircularProgress,
+  Snackbar
 } from '@mui/material';
 import {
   PersonAdd,
@@ -29,49 +30,103 @@ import {
   Email,
   Lock,
   Business,
-  Security
+  Security,
+  Badge
 } from '@mui/icons-material';
 import { admin } from '../../services/api';
 
 const CreateSubadmin = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [departments, setDepartments] = useState([]);
   const [form, setForm] = useState({
+    emp_id: '',
     name: '',
     email: '',
     password: '',
-    department: '',
-    permissions: [],
-    notificationPreferences: {
-      email: true,
-      inApp: true
-    }
+    dept_id: '',
+    role_id: 2, // Subadmin role
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [validation, setValidation] = useState({
+    emp_id: '',
+    name: '',
+    email: '',
+    password: '',
+    dept_id: ''
+  });
 
-  const steps = [
-    'Basic Information',
-    'Department Assignment',
-    'Permissions',
-    'Preferences'
-  ];
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
 
-  const permissions = [
-    { id: 'manage_complaints', label: 'Manage Complaints' },
-    { id: 'view_reports', label: 'View Reports' },
-    { id: 'manage_users', label: 'Manage Users' },
-    { id: 'send_notifications', label: 'Send Notifications' }
-  ];
+  const fetchDepartments = async () => {
+    try {
+      const response = await admin.getDepartments();
+      setDepartments(response.data);
+    } catch (err) {
+      setError('Failed to fetch departments');
+    }
+  };
+
+  const validateForm = () => {
+    const newValidation = {};
+    
+    // Employee ID validation
+    if (form.emp_id) {
+      if (!/^\d{3}$/.test(form.emp_id)) {
+        newValidation.emp_id = 'Employee ID must be a 3-digit number';
+      }
+    }
+
+    // Name validation
+    if (form.name) {
+      if (form.name.length < 2 || form.name.length > 20) {
+        newValidation.name = 'Name must be between 2 and 20 characters';
+      } else if (!/^[a-zA-Z\s]+$/.test(form.name)) {
+        newValidation.name = 'Name can only contain letters and spaces';
+      }
+    }
+
+    // Email validation
+    if (form.email) {
+      if (!form.email.endsWith('@starkdigital.in')) {
+        newValidation.email = 'Email must be a @starkdigital.in address';
+      }
+    }
+
+    // Password validation
+    if (form.password) {
+      if (form.password.length < 8) {
+        newValidation.password = 'Password must be at least 8 characters';
+      } else if (!/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(form.password)) {
+        newValidation.password = 'Password must contain uppercase, lowercase, number and special character';
+      }
+    }
+
+    setValidation(newValidation);
+    return Object.keys(newValidation).length === 0;
+  };
+
+  const handleInputChange = (field) => (e) => {
+    const value = e.target.value;
+    setForm(prev => ({ ...prev, [field]: value }));
+    if (value) {
+      validateForm();
+    }
+  };
+
+  const steps = ['Basic Information', 'Department Assignment'];
 
   const handleNext = () => {
     if (activeStep === steps.length - 1) {
       handleSubmit();
     } else {
-      setActiveStep((prev) => prev + 1);
+      if (validateForm()) {
+        setActiveStep((prev) => prev + 1);
+      }
     }
   };
 
@@ -79,17 +134,27 @@ const CreateSubadmin = () => {
     setActiveStep((prev) => prev - 1);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
     setLoading(true);
     setError(null);
-    setSuccess(null);
     try {
       await admin.createSubadmin(form);
       setSuccess('Subadmin created successfully!');
-      setForm({ name: '', email: '', password: '', department: '' });
+      setForm({
+        emp_id: '',
+        name: '',
+        email: '',
+        password: '',
+        dept_id: '',
+        role_id: 2
+      });
+      setActiveStep(0);
+      setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError('Failed to create subadmin');
+      const errorMessage = err.response?.data?.error || 'Failed to create subadmin';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -98,11 +163,9 @@ const CreateSubadmin = () => {
   const isStepValid = () => {
     switch (activeStep) {
       case 0:
-        return form.name && form.email && form.password;
+        return form.emp_id && form.name && form.email && form.password && !Object.keys(validation).length;
       case 1:
-        return form.department;
-      case 2:
-        return form.permissions.length > 0;
+        return form.dept_id;
       default:
         return true;
     }
@@ -116,18 +179,12 @@ const CreateSubadmin = () => {
             <Avatar sx={{ bgcolor: 'primary.main' }}>
               <PersonAdd />
             </Avatar>
-            <Typography variant="h5">Create Subadmin</Typography>
+            <Typography variant="h5" component="h1">Create Subadmin</Typography>
           </Box>
 
           {error && (
-            <Alert severity="error" onClose={() => setError('')} sx={{ mb: 3 }}>
+            <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 3 }}>
               {error}
-            </Alert>
-          )}
-
-          {success && (
-            <Alert severity="success" onClose={() => setSuccess('')} sx={{ mb: 3 }}>
-              {success}
             </Alert>
           )}
 
@@ -144,18 +201,48 @@ const CreateSubadmin = () => {
               <Stack spacing={3}>
                 <TextField
                   fullWidth
+                  label="Employee ID"
+                  value={form.emp_id}
+                  onChange={handleInputChange('emp_id')}
+                  error={Boolean(validation.emp_id)}
+                  helperText={validation.emp_id}
+                  required
+                  placeholder="Enter 3-digit employee ID"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Badge color="action" />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+                <TextField
+                  fullWidth
                   label="Full Name"
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  onChange={handleInputChange('name')}
+                  error={Boolean(validation.name)}
+                  helperText={validation.name}
                   required
+                  placeholder="Enter full name"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonAdd color="action" />
+                      </InputAdornment>
+                    )
+                  }}
                 />
                 <TextField
                   fullWidth
                   label="Email"
                   type="email"
                   value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  onChange={handleInputChange('email')}
+                  error={Boolean(validation.email)}
+                  helperText={validation.email}
                   required
+                  placeholder="name@starkdigital.in"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -169,7 +256,9 @@ const CreateSubadmin = () => {
                   label="Password"
                   type={showPassword ? 'text' : 'password'}
                   value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onChange={handleInputChange('password')}
+                  error={Boolean(validation.password)}
+                  helperText={validation.password}
                   required
                   InputProps={{
                     startAdornment: (
@@ -196,9 +285,9 @@ const CreateSubadmin = () => {
               <FormControl fullWidth>
                 <InputLabel>Department</InputLabel>
                 <Select
-                  value={form.department}
+                  value={form.dept_id}
                   label="Department"
-                  onChange={(e) => setForm({ ...form, department: e.target.value })}
+                  onChange={handleInputChange('dept_id')}
                   required
                   startAdornment={
                     <InputAdornment position="start">
@@ -206,78 +295,13 @@ const CreateSubadmin = () => {
                     </InputAdornment>
                   }
                 >
-                  <MenuItem value="it">IT Department</MenuItem>
-                  <MenuItem value="hr">HR Department</MenuItem>
-                  <MenuItem value="finance">Finance Department</MenuItem>
+                  {departments.map((dept) => (
+                    <MenuItem key={dept.dept_id} value={dept.dept_id}>
+                      {dept.name}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
-            )}
-
-            {activeStep === 2 && (
-              <Stack spacing={2}>
-                <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                  Select Permissions
-                </Typography>
-                {permissions.map((permission) => (
-                  <FormControlLabel
-                    key={permission.id}
-                    control={
-                      <Checkbox
-                        checked={form.permissions.includes(permission.id)}
-                        onChange={(e) => {
-                          const newPermissions = e.target.checked
-                            ? [...form.permissions, permission.id]
-                            : form.permissions.filter((p) => p !== permission.id);
-                          setForm({ ...form, permissions: newPermissions });
-                        }}
-                      />
-                    }
-                    label={permission.label}
-                  />
-                ))}
-              </Stack>
-            )}
-
-            {activeStep === 3 && (
-              <Stack spacing={2}>
-                <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                  Notification Preferences
-                </Typography>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={form.notificationPreferences.email}
-                      onChange={(e) => {
-                        setForm({
-                          ...form,
-                          notificationPreferences: {
-                            ...form.notificationPreferences,
-                            email: e.target.checked
-                          }
-                        });
-                      }}
-                    />
-                  }
-                  label="Email Notifications"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={form.notificationPreferences.inApp}
-                      onChange={(e) => {
-                        setForm({
-                          ...form,
-                          notificationPreferences: {
-                            ...form.notificationPreferences,
-                            inApp: e.target.checked
-                          }
-                        });
-                      }}
-                    />
-                  }
-                  label="In-App Notifications"
-                />
-              </Stack>
             )}
 
             <Box display="flex" justifyContent="space-between" mt={4}>
@@ -290,14 +314,26 @@ const CreateSubadmin = () => {
               <Button
                 variant="contained"
                 onClick={handleNext}
-                disabled={!isStepValid()}
+                disabled={loading || !isStepValid()}
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
               >
-                {activeStep === steps.length - 1 ? 'Create Subadmin' : 'Next'}
+                {activeStep === steps.length - 1 ? (loading ? 'Creating...' : 'Create Subadmin') : 'Next'}
               </Button>
             </Box>
           </Box>
         </Paper>
       </Box>
+
+      <Snackbar
+        open={Boolean(success)}
+        autoHideDuration={3000}
+        onClose={() => setSuccess(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" onClose={() => setSuccess(null)}>
+          {success}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

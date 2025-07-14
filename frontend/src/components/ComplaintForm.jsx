@@ -13,26 +13,42 @@ import {
   Select
 } from '@mui/material';
 import { Send, Description } from '@mui/icons-material';
+import api from '../services/api';
 
-const ComplaintForm = ({ onSubmit }) => {
+const ComplaintForm = ({ onSuccess }) => {
   const [form, setForm] = useState({
     title: '',
     description: '',
-    department: '',
-    priority: 'medium'
+    dept_id: '', // Changed from department to match backend
+    severity: 'Low' // Changed from priority to match backend
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate input lengths as per backend requirements
+    if (form.title.length < 3 || form.title.length > 25) {
+      setError('Title must be between 3 and 25 characters');
+      return;
+    }
+
+    if (form.description.length < 10 || form.description.length > 100) {
+      setError('Description must be between 10 and 100 characters');
+      return;
+    }
+
     try {
-      await onSubmit(form);
+      const response = await api.post('/complaints', form);
       setSuccess(true);
       setError('');
-      setForm({ title: '', description: '', department: '', priority: 'medium' });
+      setForm({ title: '', description: '', dept_id: '', severity: 'Low' });
+      if (onSuccess) {
+        onSuccess(response.data.data);
+      }
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || 'Failed to submit complaint');
       setSuccess(false);
     }
   };
@@ -52,6 +68,8 @@ const ComplaintForm = ({ onSubmit }) => {
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
             required
+            inputProps={{ maxLength: 25 }}
+            helperText={`${form.title.length}/25 characters`}
           />
 
           <TextField
@@ -62,31 +80,34 @@ const ComplaintForm = ({ onSubmit }) => {
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             required
+            inputProps={{ maxLength: 100 }}
+            helperText={`${form.description.length}/100 characters`}
           />
 
           <FormControl fullWidth required>
             <InputLabel>Department</InputLabel>
             <Select
-              value={form.department}
+              value={form.dept_id}
               label="Department"
-              onChange={(e) => setForm({ ...form, department: e.target.value })}
+              onChange={(e) => setForm({ ...form, dept_id: e.target.value })}
             >
-              <MenuItem value="it">IT</MenuItem>
-              <MenuItem value="hr">HR</MenuItem>
-              <MenuItem value="finance">Finance</MenuItem>
+              <MenuItem value={1}>IT</MenuItem>
+              <MenuItem value={2}>HR</MenuItem>
+              <MenuItem value={3}>Finance</MenuItem>
+              <MenuItem value={4}>Facilities</MenuItem>
             </Select>
           </FormControl>
 
-          <FormControl fullWidth>
-            <InputLabel>Priority</InputLabel>
+          <FormControl fullWidth required>
+            <InputLabel>Severity</InputLabel>
             <Select
-              value={form.priority}
-              label="Priority"
-              onChange={(e) => setForm({ ...form, priority: e.target.value })}
+              value={form.severity}
+              label="Severity"
+              onChange={(e) => setForm({ ...form, severity: e.target.value })}
             >
-              <MenuItem value="low">Low</MenuItem>
-              <MenuItem value="medium">Medium</MenuItem>
-              <MenuItem value="high">High</MenuItem>
+              <MenuItem value="Low">Low</MenuItem>
+              <MenuItem value="Medium">Medium</MenuItem>
+              <MenuItem value="High">High</MenuItem>
             </Select>
           </FormControl>
 

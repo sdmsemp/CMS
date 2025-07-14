@@ -6,6 +6,7 @@ const authorize = require('../middleware/authorize');
 const ActivityLog = require('../models/activityLogModel');
 const { Op } = require('sequelize');
 const User = require('../models/userModel');
+const { validateSubadmin, validateDepartment } = require('../validation/adminValidation');
 
 // Middleware for superadmin-only routes
 const superadminOnly = authorize([1]); // role_id 1 = superadmin
@@ -130,7 +131,7 @@ router.get('/users', adminAuth, adminController.getAllUsers);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/subadmin', adminAuth, adminController.createSubadmin);
+router.post('/subadmin', adminAuth, validateSubadmin, adminController.createSubadmin);
 
 /**
  * @swagger
@@ -185,7 +186,7 @@ router.post('/subadmin', adminAuth, adminController.createSubadmin);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/department', adminAuth, adminController.createDepartment);
+router.post('/department', adminAuth, validateDepartment, adminController.createDepartment);
 
 /**
  * @swagger

@@ -14,10 +14,14 @@ import {
   Business,
   People,
   Assignment,
-  Report
+  Report,
+  DarkMode,
+  LightMode
 } from '@mui/icons-material';
 import NotificationBell from './NotificationBell';
  import { useAuth } from '../context/AuthContext';
+import { useTheme as useMuiTheme } from '@mui/material';
+import { useTheme as useAppTheme } from '../context/ThemeContext';
 
 const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -27,6 +31,8 @@ const Navbar = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const muiTheme = useMuiTheme();
+  const { darkMode, toggleDarkMode } = useAppTheme();
 
   const handleMenu = (event) => setAnchorEl(event.currentTarget);
   const handleUserMenu = (event) => setUserMenuAnchor(event.currentTarget);
@@ -149,7 +155,10 @@ const Navbar = () => {
         )}
 
         <NotificationBell />
-
+        {/* Dark mode toggle */}
+        <IconButton color="inherit" onClick={toggleDarkMode} sx={{ ml: 1 }}>
+          {darkMode ? <LightMode /> : <DarkMode />}
+        </IconButton>
         <IconButton 
           color="inherit" 
           onClick={handleUserMenu}

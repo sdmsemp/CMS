@@ -60,7 +60,8 @@ import {
   Done,
   Cancel,
   Visibility,
-  Settings
+  Settings,
+  Person
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -126,6 +127,14 @@ const Dashboard = () => {
   const [recentActivitiesPage, setRecentActivitiesPage] = useState(1);
   const [recentActivitiesLimit] = useState(5); // Show 5 activities per page
   const [recentActivitiesTotal, setRecentActivitiesTotal] = useState(0);
+
+  // Add user management state
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersError, setUsersError] = useState(null);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('all');
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -209,6 +218,49 @@ const Dashboard = () => {
     }
   }, [tabValue, logsPage, logsModuleFilter]);
 
+  // Add fetch users function
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    setUsersError(null);
+    try {
+      const response = await api.admin.getAllUsers();
+      setUsers(response.data.data || []);
+      setFilteredUsers(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setUsersError('Failed to fetch users');
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  // Add useEffect for users tab
+  useEffect(() => {
+    if (tabValue === 4) { // Users tab
+      fetchUsers();
+    }
+  }, [tabValue]);
+
+  // Add user filtering logic
+  useEffect(() => {
+    let filtered = users;
+
+    // Filter by search term
+    if (userSearchTerm) {
+      filtered = filtered.filter(user =>
+        user.name?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(userSearchTerm.toLowerCase())
+      );
+    }
+
+    // Filter by role
+    if (userRoleFilter !== 'all') {
+      filtered = filtered.filter(user => user.role_id === parseInt(userRoleFilter));
+    }
+
+    setFilteredUsers(filtered);
+  }, [users, userSearchTerm, userRoleFilter]);
+
   // Filter complaints based on search term
   const filteredComplaints = complaintsList.filter(complaint =>
     complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -257,11 +309,11 @@ const Dashboard = () => {
   // Get activity icon based on module
   const getActivityIcon = (module) => {
     switch (module?.toLowerCase()) {
-      case 'complaints': return <Report />;
-      case 'subadmins': return <SupervisorAccount />;
-      case 'departments': return <Business />;
-      case 'users': return <People />;
+      case 'complaint': return <Report />;
+      case 'subadmintask': return <SupervisorAccount />;
       case 'admin': return <Settings />;
+      case 'auth': return <Person />;
+      case 'role': return <Assignment />;
       default: return <Assignment />;
     }
   };
@@ -311,34 +363,22 @@ const Dashboard = () => {
     }
   };
 
-  // Add a test function
-  const testApiConnection = async () => {
-    try {
-      console.log('Testing API connection...');
-      const response = await fetch('http://localhost:5000/api/admin/dashboard/test');
-      const data = await response.json();
-      console.log('Test response:', data);
-      alert('API test successful: ' + JSON.stringify(data));
-    } catch (error) {
-      console.error('API test failed:', error);
-      alert('API test failed: ' + error.message);
+  // Add helper functions for user display
+  const getRoleDisplayName = (roleId) => {
+    switch (roleId) {
+      case 1: return 'Admin';
+      case 2: return 'Subadmin';
+      case 3: return 'User';
+      default: return 'Unknown';
     }
   };
 
-  // Add authentication check function
-  const checkAuthStatus = async () => {
-    try {
-      console.log('Checking auth status...');
-      const token = localStorage.getItem('token') || 'No token found';
-      console.log('Token:', token ? 'Present' : 'Missing');
-      
-      // Try to get user profile
-      const response = await api.auth.getProfile();
-      console.log('Auth response:', response.data);
-      alert('Auth status: ' + JSON.stringify(response.data));
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      alert('Auth check failed: ' + (error.response?.data?.error || error.message));
+  const getRoleColor = (roleId) => {
+    switch (roleId) {
+      case 1: return 'error';
+      case 2: return 'warning';
+      case 3: return 'default';
+      default: return 'default';
     }
   };
 
@@ -352,20 +392,6 @@ const Dashboard = () => {
             Admin Dashboard
           </Typography>
           <Stack direction="row" spacing={2}>
-            <Button
-              variant="outlined"
-              onClick={testApiConnection}
-              sx={{ mr: 2 }}
-            >
-              Test API
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={checkAuthStatus}
-              sx={{ mr: 2 }}
-            >
-              Check Auth
-            </Button>
             <Button
               variant="contained"
               startIcon={<PersonAdd />}
@@ -394,6 +420,7 @@ const Dashboard = () => {
             <Tab label="Analytics" />
             <Tab label="Complaints" />
             <Tab label="Activity Logs" />
+            <Tab label="Users" />
           </Tabs>
         </Paper>
 
@@ -804,7 +831,7 @@ const Dashboard = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    placeholder="Search activity logs by action, user, or module..."
+                    placeholder="Search activity logs..."
                     value={logsSearchTerm}
                     onChange={(e) => setLogsSearchTerm(e.target.value)}
                     InputProps={{
@@ -825,10 +852,11 @@ const Dashboard = () => {
                       onChange={(e) => setLogsModuleFilter(e.target.value)}
                     >
                       <MenuItem value="all">All Modules</MenuItem>
-                      <MenuItem value="Complaints">Complaints</MenuItem>
-                      <MenuItem value="Subadmins">Subadmins</MenuItem>
-                      <MenuItem value="Departments">Departments</MenuItem>
-                      <MenuItem value="Users">Users</MenuItem>
+                      <MenuItem value="Complaint">Complaints</MenuItem>
+                      <MenuItem value="SubadminTask">Subadmin Tasks</MenuItem>
+                      <MenuItem value="Admin">Admin</MenuItem>
+                      <MenuItem value="Auth">Authentication</MenuItem>
+                      <MenuItem value="Role">Roles</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -846,71 +874,298 @@ const Dashboard = () => {
               </Grid>
             </Paper>
 
-            {/* Activity Logs Grid */}
+            {/* Activity Logs List */}
             {logsLoading ? (
               <Box display="flex" justifyContent="center" p={4}>
                 <CircularProgress />
               </Box>
             ) : (
-              <Grid container spacing={3}>
+              <>
+                {/* Logs Count */}
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Typography variant="h6" color="text.secondary">
+                    {filteredActivityLogs.length} activity logs
+                  </Typography>
+                  {logsSearchTerm || logsModuleFilter !== 'all' && (
+                    <Chip 
+                      label="Filtered" 
+                      color="primary" 
+                      size="small" 
+                      variant="outlined"
+                    />
+                  )}
+                </Box>
+
+                {/* Activity Logs */}
                 {filteredActivityLogs.length === 0 ? (
+                  <Paper sx={{ p: 6, textAlign: 'center' }}>
+                    <Box sx={{ mb: 2 }}>
+                      <Assignment sx={{ fontSize: 48, color: 'text.secondary' }} />
+                    </Box>
+                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                      No activity logs found
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {logsSearchTerm || logsModuleFilter !== 'all' 
+                        ? 'Try adjusting your search or filter criteria'
+                        : 'No activity logs available yet'
+                      }
+                    </Typography>
+                  </Paper>
+                ) : (
+                  <Box>
+                    {filteredActivityLogs.map((log, index) => (
+                      <Paper 
+                        key={index} 
+                        sx={{ 
+                          p: 3, 
+                          mb: 2, 
+                          borderRadius: 2,
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            boxShadow: 3,
+                            transform: 'translateY(-1px)'
+                          }
+                        }}
+                      >
+                        <Box display="flex" alignItems="flex-start" gap={2}>
+                          {/* Icon */}
+                          <Avatar 
+                            sx={{ 
+                              bgcolor: 'primary.main', 
+                              width: 48, 
+                              height: 48,
+                              mt: 0.5
+                            }}
+                          >
+                            {getActivityIcon(log.module)}
+                          </Avatar>
+                          
+                          {/* Content */}
+                          <Box flex={1}>
+                            <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
+                              <Typography variant="subtitle1" fontWeight="medium">
+                                {log.user?.name || 'System'}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {formatDate(log.timestamp)}
+                              </Typography>
+                            </Box>
+                            
+                            <Typography variant="body2" color="text.primary" mb={1}>
+                              {log.action}
+                            </Typography>
+                            
+                            <Box display="flex" alignItems="center" gap={2}>
+                              <Chip 
+                                label={log.module} 
+                                size="small" 
+                                variant="outlined"
+                                color="primary"
+                              />
+                              <Typography variant="caption" color="text.secondary">
+                                {log.user?.email}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Paper>
+                    ))}
+                  </Box>
+                )}
+                
+                {/* Pagination */}
+                {logsTotalPages > 1 && (
+                  <Box display="flex" justifyContent="center" mt={4}>
+                    <Paper sx={{ p: 2 }}>
+                      <Pagination
+                        count={logsTotalPages}
+                        page={logsPage}
+                        onChange={(e, newPage) => setLogsPage(newPage)}
+                        color="primary"
+                        showFirstButton
+                        showLastButton
+                        size="large"
+                      />
+                    </Paper>
+                  </Box>
+                )}
+              </>
+            )}
+          </Box>
+        )}
+
+        {/* Users Tab */}
+        {tabValue === 4 && (
+          <Box>
+            {/* Search and Filter Bar */}
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    placeholder="Search users by name or email..."
+                    value={userSearchTerm}
+                    onChange={(e) => setUserSearchTerm(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Search />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <FormControl fullWidth>
+                    <InputLabel>Role Filter</InputLabel>
+                    <Select
+                      value={userRoleFilter}
+                      label="Role Filter"
+                      onChange={(e) => setUserRoleFilter(e.target.value)}
+                    >
+                      <MenuItem value="all">All Roles</MenuItem>
+                      <MenuItem value={1}>Admin</MenuItem>
+                      <MenuItem value={2}>Subadmin</MenuItem>
+                      <MenuItem value={3}>User</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<FilterList />}
+                    onClick={fetchUsers}
+                    disabled={usersLoading}
+                  >
+                    {usersLoading ? <CircularProgress size={20} /> : 'Refresh'}
+                  </Button>
+                </Grid>
+              </Grid>
+            </Paper>
+
+            {/* Users Display */}
+            {usersLoading ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <CircularProgress />
+              </Box>
+            ) : usersError ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <Typography variant="h6" color="error">{usersError}</Typography>
+              </Box>
+            ) : (
+              <Grid container spacing={3}>
+                {filteredUsers.length === 0 ? (
                   <Grid item xs={12}>
                     <Paper sx={{ p: 4, textAlign: 'center' }}>
                       <Typography variant="h6" color="text.secondary">
-                        No activity logs found
+                        No users found
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {logsSearchTerm || logsModuleFilter !== 'all' 
+                        {userSearchTerm || userRoleFilter !== 'all' 
                           ? 'Try adjusting your search or filter criteria'
-                          : 'No activity logs available yet'
+                          : 'No users available in the system'
                         }
                       </Typography>
                     </Paper>
                   </Grid>
                 ) : (
-                  filteredActivityLogs.map((log, index) => (
-                    <Grid item xs={12} key={index}>
-                      <Paper sx={{ p: 2, borderRadius: 2 }}>
-                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                          <Box display="flex" alignItems="center" gap={2}>
-                            <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
-                              {getActivityIcon(log.module)}
+                  filteredUsers.map((user, index) => (
+                    <Grid item xs={12} sm={6} md={4} key={user.emp_id || index}>
+                      <Card sx={{ 
+                        height: '100%',
+                        transition: 'transform 0.2s',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: 3
+                        }
+                      }}>
+                        <CardContent>
+                          <Box display="flex" alignItems="center" gap={2} mb={2}>
+                            <Avatar sx={{ bgcolor: 'primary.main', width: 48, height: 48 }}>
+                              {user.name ? user.name[0].toUpperCase() : 'U'}
                             </Avatar>
-                            <Box>
-                              <Typography variant="body2" color="text.secondary">
-                                <strong>{log.user?.name || 'System'}:</strong> {log.action}
+                            <Box flex={1}>
+                              <Typography variant="h6" noWrap>
+                                {user.name || 'Unknown'}
                               </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                Module: {log.module}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                Timestamp: {formatDate(log.timestamp)}
+                              <Typography variant="body2" color="text.secondary" noWrap>
+                                {user.email || 'No email'}
                               </Typography>
                             </Box>
                           </Box>
-                          <IconButton size="small">
-                            <MoreVert />
-                          </IconButton>
-                        </Box>
-                      </Paper>
+                          
+                          <Box display="flex" flexDirection="column" gap={1}>
+                            <Box display="flex" alignItems="center" gap={1}>
+                              <Chip
+                                label={getRoleDisplayName(user.role_id)}
+                                color={getRoleColor(user.role_id)}
+                                size="small"
+                                variant="outlined"
+                              />
+                            </Box>
+                            
+                            <Box display="flex" alignItems="center" gap={1}>
+                              <Business fontSize="small" color="action" />
+                              <Typography variant="body2" color="text.secondary">
+                                {user.Department?.name || 'No Department'}
+                              </Typography>
+                            </Box>
+                            
+                            <Box display="flex" alignItems="center" gap={1}>
+                              <Person fontSize="small" color="action" />
+                              <Typography variant="body2" color="text.secondary">
+                                ID: {user.emp_id || 'N/A'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </CardContent>
+                        <CardActions>
+                          <Button 
+                            size="small" 
+                            startIcon={<Visibility />}
+                            onClick={() => navigate('/admin/users')}
+                          >
+                            View Details
+                          </Button>
+                        </CardActions>
+                      </Card>
                     </Grid>
                   ))
                 )}
               </Grid>
             )}
             
-            {/* Pagination */}
-            {logsTotalPages > 1 && (
-              <Box display="flex" justifyContent="center" mt={3}>
-                <Pagination
-                  count={logsTotalPages}
-                  page={logsPage}
-                  onChange={(e, newPage) => setLogsPage(newPage)}
-                  color="primary"
-                  showFirstButton
-                  showLastButton
-                />
-              </Box>
+            {/* User Statistics */}
+            {!usersLoading && !usersError && users.length > 0 && (
+              <Paper sx={{ p: 3, mt: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  User Statistics
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={3}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Total Users:</strong> {users.length}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Admins:</strong> {users.filter(u => u.role_id === 1).length}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Subadmins:</strong> {users.filter(u => u.role_id === 2).length}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Regular Users:</strong> {users.filter(u => u.role_id === 3).length}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
             )}
           </Box>
         )}

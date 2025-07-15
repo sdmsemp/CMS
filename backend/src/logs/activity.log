@@ -1,1 +1,9 @@
 [2025-07-15T14:01:37.711Z] [WARNING] [Admin] DELETE: Activity log file cleared by admin | User ID: 100 | Details: {"action":"clear_log_file"}
+[2025-07-15T14:36:05.988Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-15T14:43:18.746Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-15T14:53:58.353Z] [INFO] [Auth] LOGIN: User logged in successfully: soham (soham@starkdigital.in) | User ID: 349 | Details: {"email":"soham@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-15T14:54:45.910Z] [INFO] [Complaint] CREATE: Complaint created: "Hello there" | User ID: 349 | Details: {"complaint_id":5,"title":"Hello there","severity":"medium","department_id":1,"status":"Pending"}
+[2025-07-15T14:55:06.895Z] [INFO] [Auth] LOGIN: User logged in successfully: kundan (subadmin@starkdigital.in) | User ID: 123 | Details: {"email":"subadmin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-15T14:55:48.397Z] [INFO] [SubadminTask] CREATE: Added task for complaint 5 | User ID: 123
+[2025-07-15T14:56:34.071Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-15T15:27:44.990Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}

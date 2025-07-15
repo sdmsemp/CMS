@@ -6,7 +6,7 @@ const authorize = require('../middleware/authorize');
 const ActivityLog = require('../models/activityLogModel');
 const { readLogFile, clearLogFile, getLogStats, createActivityLog } = require('../utils/activityLogger');
 const { Op } = require('sequelize');
-const User = require('../models/userModel');
+const { User, Department, Complaint, sequelize } = require('../models');
 const { validateSubadmin, validateDepartment } = require('../validation/adminValidation');
 
 // Middleware for superadmin-only routes
@@ -471,6 +471,197 @@ router.get('/log-file/stats', adminAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to get log statistics'
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/admin/dashboard/stats:
+ *   get:
+ *     summary: Get dashboard statistics (Superadmin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard statistics
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not a superadmin
+ */
+router.get('/dashboard/stats', adminAuth, async (req, res) => {
+  try {
+    console.log('Dashboard stats endpoint called');
+    
+    // Simple counts without complex associations
+    const departmentCount = await Department.count();
+    const subadminCount = await User.count({ where: { role_id: 2 } });
+    const userCount = await User.count({ where: { role_id: 3 } });
+    const complaintCount = await Complaint.count();
+    const activityCount = await ActivityLog.count();
+    
+    console.log('Counts:', { departmentCount, subadminCount, userCount, complaintCount, activityCount });
+
+    // Format the data for frontend
+    const stats = [
+      {
+        title: 'Total Departments',
+        value: departmentCount.toString(),
+        icon: 'Domain',
+        color: 'primary.main',
+        trend: '+1 this month'
+      },
+      {
+        title: 'Total Subadmins',
+        value: subadminCount.toString(),
+        icon: 'SupervisorAccount',
+        color: 'secondary.main',
+        trend: '+2 this month'
+      },
+      {
+        title: 'Active Users',
+        value: userCount.toString(),
+        icon: 'People',
+        color: 'success.main',
+        trend: '+5 this week'
+      },
+      {
+        title: 'System Alerts',
+        value: activityCount.toString(),
+        icon: 'Notifications',
+        color: 'warning.main',
+        trend: '-2 this week'
+      }
+    ];
+
+    // Get recent activities (simplified)
+    const recentActivities = await ActivityLog.findAll({
+      order: [['timestamp', 'DESC']],
+      limit: 10,
+      raw: true
+    });
+
+    // Format recent activities
+    const formattedActivities = recentActivities.map(activity => ({
+      type: activity.module || 'system',
+      text: `${activity.action} - ${activity.module || 'System'}`,
+      time: new Date(activity.timestamp).toLocaleString(),
+      icon: activity.module === 'Admin' ? 'Settings' : 'Assignment'
+    }));
+
+    console.log('Sending response:', { stats, formattedActivities });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        stats,
+        recentActivities: formattedActivities,
+        departments: departmentCount,
+        subadmins: subadminCount,
+        activeUsers: userCount,
+        systemAlerts: activityCount,
+        recentComplaints: complaintCount
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch dashboard statistics: ' + error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/admin/dashboard/charts:
+ *   get:
+ *     summary: Get dashboard chart data (Superadmin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard chart data
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not a superadmin
+ */
+router.get('/dashboard/charts', adminAuth, async (req, res) => {
+  try {
+    console.log('Dashboard charts endpoint called');
+    
+    // Simple department data
+    const departments = await Department.findAll({
+      attributes: ['dept_id', 'name'],
+      raw: true
+    });
+
+    // Format department performance for chart
+    const departmentPerformance = {
+      labels: departments.map(d => d.name || 'Unknown'),
+      datasets: [{
+        label: 'Total Complaints',
+        data: departments.map(() => Math.floor(Math.random() * 20) + 5), // Random data for now
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        borderColor: 'rgb(75, 192, 192)',
+      }]
+    };
+
+    // User activity data - simplified
+    const userActivity = {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      datasets: [{
+        label: 'Active Users',
+        data: [20, 25, 22, 30, 28, 15, 18], // Default data for now
+        borderColor: 'rgb(53, 162, 235)',
+        tension: 0.4
+      }]
+    };
+
+    console.log('Sending charts response');
+
+    res.status(200).json({
+      success: true,
+      data: {
+        departmentPerformance,
+        userActivity
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard charts:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch dashboard chart data: ' + error.message
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/admin/dashboard/test:
+ *   get:
+ *     summary: Test dashboard endpoint (no auth required)
+ *     tags: [Admin]
+ *     responses:
+ *       200:
+ *         description: Test response
+ */
+router.get('/dashboard/test', async (req, res) => {
+  try {
+    res.status(200).json({
+      success: true,
+      message: 'Dashboard test endpoint working',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Dashboard test error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Test failed: ' + error.message
     });
   }
 });

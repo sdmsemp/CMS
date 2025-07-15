@@ -85,6 +85,8 @@ export const admin = {
   getLogFile: (lines) => api.get('/admin/log-file', { params: { lines } }),
   clearLogFile: () => api.post('/admin/log-file/clear'),
   getLogStats: () => api.get('/admin/log-file/stats'),
+  getDashboardStats: () => api.get('/admin/dashboard/stats'),
+  getDashboardCharts: () => api.get('/admin/dashboard/charts'),
 };
 
 // Role endpoints

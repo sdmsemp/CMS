@@ -121,81 +121,36 @@ const Dashboard = () => {
   const [logFileStats, setLogFileStats] = useState(null);
   const [logFileLines, setLogFileLines] = useState(100);
 
-  const stats = [
-    {
-      title: 'Total Departments',
-      value: '05',
-      icon: <Domain />,
-      color: 'primary.main',
-      trend: '+1 this month'
-    },
-    {
-      title: 'Total Subadmins',
-      value: '08',
-      icon: <SupervisorAccount />,
-      color: 'secondary.main',
-      trend: '+2 this month'
-    },
-    {
-      title: 'Active Users',
-      value: '25',
-      icon: <People />,
-      color: 'success.main',
-      trend: '+5 this week'
-    },
-    {
-      title: 'System Alerts',
-      value: '03',
-      icon: <Notifications />,
-      color: 'warning.main',
-      trend: '-2 this week'
-    }
-  ];
+  // Remove static arrays for stats, departmentPerformance, userActivity, recentActivities
+  // Add state for dynamic dashboard data
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [dashboardCharts, setDashboardCharts] = useState(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState(null);
 
-  const departmentPerformance = {
-    labels: ['IT', 'HR', 'Finance', 'Admin', 'Marketing'],
-    datasets: [
-      {
-        label: 'Resolution Rate (%)',
-        data: [92, 88, 95, 85, 90],
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
-        borderColor: 'rgb(75, 192, 192)',
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setDashboardLoading(true);
+      setDashboardError(null);
+      try {
+        console.log('Fetching dashboard data...');
+        const [statsRes, chartsRes] = await Promise.all([
+          api.admin.getDashboardStats(),
+          api.admin.getDashboardCharts()
+        ]);
+        console.log('Dashboard stats response:', statsRes);
+        console.log('Dashboard charts response:', chartsRes);
+        setDashboardStats(statsRes.data.data);
+        setDashboardCharts(chartsRes.data.data);
+      } catch (err) {
+        console.error('Dashboard data fetch error:', err);
+        setDashboardError('Failed to load dashboard data: ' + (err.response?.data?.error || err.message));
+      } finally {
+        setDashboardLoading(false);
       }
-    ]
-  };
-
-  const userActivity = {
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [
-      {
-        label: 'Active Users',
-        data: [20, 25, 22, 30, 28, 15, 18],
-        borderColor: 'rgb(53, 162, 235)',
-        tension: 0.4
-      }
-    ]
-  };
-
-  const recentActivities = [
-    {
-      type: 'department',
-      text: 'New department "Cloud Services" created',
-      time: '2 hours ago',
-      icon: <Domain color="primary" />
-    },
-    {
-      type: 'subadmin',
-      text: 'New subadmin assigned to IT department',
-      time: '4 hours ago',
-      icon: <SupervisorAccount color="secondary" />
-    },
-    {
-      type: 'system',
-      text: 'System maintenance completed',
-      time: '6 hours ago',
-      icon: <CheckCircle color="success" />
-    }
-  ];
+    };
+    fetchDashboardData();
+  }, []);
 
   // Fetch complaints
   const fetchComplaints = async () => {
@@ -377,6 +332,36 @@ const Dashboard = () => {
     }
   };
 
+  // Add a test function
+  const testApiConnection = async () => {
+    try {
+      console.log('Testing API connection...');
+      const response = await fetch('http://localhost:5000/api/admin/dashboard/test');
+      const data = await response.json();
+      console.log('Test response:', data);
+      alert('API test successful: ' + JSON.stringify(data));
+    } catch (error) {
+      console.error('API test failed:', error);
+      alert('API test failed: ' + error.message);
+    }
+  };
+
+  // Add authentication check function
+  const checkAuthStatus = async () => {
+    try {
+      console.log('Checking auth status...');
+      const token = localStorage.getItem('token') || 'No token found';
+      console.log('Token:', token ? 'Present' : 'Missing');
+      
+      // Try to get user profile
+      const response = await api.auth.getProfile();
+      console.log('Auth response:', response.data);
+      alert('Auth status: ' + JSON.stringify(response.data));
+    } catch (error) {
+      console.error('Auth check failed:', error);
+      alert('Auth check failed: ' + (error.response?.data?.error || error.message));
+    }
+  };
 
 
   return (
@@ -388,6 +373,20 @@ const Dashboard = () => {
             Admin Dashboard
           </Typography>
           <Stack direction="row" spacing={2}>
+            <Button
+              variant="outlined"
+              onClick={testApiConnection}
+              sx={{ mr: 2 }}
+            >
+              Test API
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={checkAuthStatus}
+              sx={{ mr: 2 }}
+            >
+              Check Auth
+            </Button>
             <Button
               variant="contained"
               startIcon={<PersonAdd />}
@@ -425,45 +424,68 @@ const Dashboard = () => {
           <>
             {/* Stats Grid */}
             <Grid container spacing={3}>
-              {stats.map((stat, index) => (
-                <Grid item xs={12} sm={6} md={3} key={index}>
-                  <Card sx={{ 
-                    height: '100%',
-                    transition: 'transform 0.2s',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: 3
-                    }
-                  }}>
-                    <CardContent>
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        <Avatar sx={{ bgcolor: stat.color, width: 56, height: 56 }}>
-                          {stat.icon}
-                        </Avatar>
-                        <IconButton size="small">
-                          <MoreVert />
-                        </IconButton>
-                      </Box>
-                      
-                      <Typography variant="h4" sx={{ my: 2, fontWeight: 'bold' }}>
-                        {stat.value}
-                      </Typography>
-                      
-                      <Box display="flex" alignItems="center" justifyContent="space-between">
-                        <Typography variant="body2" color="text.secondary">
-                          {stat.title}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color={stat.trend.includes('+') ? 'success.main' : 'info.main'}
-                        >
-                          {stat.trend}
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
+              {dashboardLoading ? (
+                <Grid item xs={12}>
+                  <Box display="flex" justifyContent="center" p={4}>
+                    <CircularProgress />
+                  </Box>
                 </Grid>
-              ))}
+              ) : dashboardError ? (
+                <Grid item xs={12}>
+                  <Box display="flex" justifyContent="center" p={4}>
+                    <Typography variant="h6" color="error">{dashboardError}</Typography>
+                  </Box>
+                </Grid>
+              ) : dashboardStats?.stats ? (
+                dashboardStats.stats.map((stat, index) => (
+                  <Grid item xs={12} sm={6} md={3} key={index}>
+                    <Card sx={{ 
+                      height: '100%',
+                      transition: 'transform 0.2s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 3
+                      }
+                    }}>
+                      <CardContent>
+                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                          <Avatar sx={{ bgcolor: stat.color, width: 56, height: 56 }}>
+                            {stat.icon === 'Domain' && <Domain />}
+                            {stat.icon === 'SupervisorAccount' && <SupervisorAccount />}
+                            {stat.icon === 'People' && <People />}
+                            {stat.icon === 'Notifications' && <Notifications />}
+                          </Avatar>
+                          <IconButton size="small">
+                            <MoreVert />
+                          </IconButton>
+                        </Box>
+                        
+                        <Typography variant="h4" sx={{ my: 2, fontWeight: 'bold' }}>
+                          {stat.value}
+                        </Typography>
+                        
+                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                          <Typography variant="body2" color="text.secondary">
+                            {stat.title}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color={stat.trend.includes('+') ? 'success.main' : 'info.main'}
+                          >
+                            {stat.trend}
+                          </Typography>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))
+              ) : (
+                <Grid item xs={12}>
+                  <Box display="flex" justifyContent="center" p={4}>
+                    <Typography variant="h6" color="text.secondary">No data available</Typography>
+                  </Box>
+                </Grid>
+              )}
 
               {/* Charts */}
               <Grid item xs={12} md={8}>
@@ -478,22 +500,32 @@ const Dashboard = () => {
                   </Tabs>
 
                   <Box height={300}>
-                    <Bar
-                      data={departmentPerformance}
-                      options={{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                          legend: {
-                            position: 'top',
-                          },
-                          title: {
-                            display: true,
-                            text: 'Department Resolution Rates'
+                    {dashboardLoading ? (
+                      <Box display="flex" justifyContent="center" p={4}>
+                        <CircularProgress />
+                      </Box>
+                    ) : dashboardError ? (
+                      <Box display="flex" justifyContent="center" p={4}>
+                        <Typography variant="h6" color="error">{dashboardError}</Typography>
+                      </Box>
+                    ) : (
+                      <Bar
+                        data={dashboardCharts?.departmentPerformance}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: {
+                              position: 'top',
+                            },
+                            title: {
+                              display: true,
+                              text: 'Department Resolution Rates'
+                            }
                           }
-                        }
-                      }}
-                    />
+                        }}
+                      />
+                    )}
                   </Box>
                 </Paper>
               </Grid>
@@ -504,30 +536,47 @@ const Dashboard = () => {
                   <Typography variant="h6" gutterBottom>
                     Recent Activities
                   </Typography>
-                  <List>
-                    {recentActivities.map((activity, index) => (
-                      <React.Fragment key={index}>
-                        <ListItem alignItems="flex-start">
-                          <ListItemIcon>
-                            {activity.icon}
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={activity.text}
-                            secondary={
-                              <Typography
-                                component="span"
-                                variant="body2"
-                                color="text.secondary"
-                              >
-                                {activity.time}
-                              </Typography>
-                            }
-                          />
-                        </ListItem>
-                        {index < recentActivities.length - 1 && <Divider />}
-                      </React.Fragment>
-                    ))}
-                  </List>
+                  {dashboardLoading ? (
+                    <Box display="flex" justifyContent="center" p={4}>
+                      <CircularProgress />
+                    </Box>
+                  ) : dashboardError ? (
+                    <Box display="flex" justifyContent="center" p={4}>
+                      <Typography variant="h6" color="error">{dashboardError}</Typography>
+                    </Box>
+                  ) : dashboardStats?.recentActivities ? (
+                    <List>
+                      {dashboardStats.recentActivities.map((activity, index) => (
+                        <React.Fragment key={index}>
+                          <ListItem alignItems="flex-start">
+                            <ListItemIcon>
+                              {activity.icon === 'Settings' && <Settings color="primary" />}
+                              {activity.icon === 'Assignment' && <Assignment color="secondary" />}
+                              {activity.icon === 'CheckCircle' && <CheckCircle color="success" />}
+                              {!['Settings', 'Assignment', 'CheckCircle'].includes(activity.icon) && <Assignment color="action" />}
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={activity.text}
+                              secondary={
+                                <Typography
+                                  component="span"
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
+                                  {activity.time}
+                                </Typography>
+                              }
+                            />
+                          </ListItem>
+                          {index < dashboardStats.recentActivities.length - 1 && <Divider />}
+                        </React.Fragment>
+                      ))}
+                    </List>
+                  ) : (
+                    <Box display="flex" justifyContent="center" p={4}>
+                      <Typography variant="body2" color="text.secondary">No recent activities</Typography>
+                    </Box>
+                  )}
                 </Paper>
               </Grid>
             </Grid>
@@ -543,22 +592,32 @@ const Dashboard = () => {
                   User Activity Trends
                 </Typography>
                 <Box height={400}>
-                  <Line
-                    data={userActivity}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: {
-                          position: 'top',
-                        },
-                        title: {
-                          display: true,
-                          text: 'Daily Active Users'
+                  {dashboardLoading ? (
+                    <Box display="flex" justifyContent="center" p={4}>
+                      <CircularProgress />
+                    </Box>
+                  ) : dashboardError ? (
+                    <Box display="flex" justifyContent="center" p={4}>
+                      <Typography variant="h6" color="error">{dashboardError}</Typography>
+                    </Box>
+                  ) : (
+                    <Line
+                      data={dashboardCharts?.userActivity}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: {
+                            position: 'top',
+                          },
+                          title: {
+                            display: true,
+                            text: 'Daily Active Users'
+                          }
                         }
-                      }
-                    }}
-                  />
+                      }}
+                    />
+                  )}
                 </Box>
               </Paper>
             </Grid>

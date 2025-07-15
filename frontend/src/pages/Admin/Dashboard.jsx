@@ -33,7 +33,8 @@ import {
   DialogContent,
   DialogActions,
   Badge,
-  CircularProgress
+  CircularProgress,
+  Pagination
 } from '@mui/material';
 import {
   People,
@@ -58,7 +59,8 @@ import {
   Schedule,
   Done,
   Cancel,
-  Visibility
+  Visibility,
+  Settings
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -74,7 +76,7 @@ import {
 } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
 import React from 'react';
-import { complaints } from '../../services/api';
+import * as api from '../../services/api';
 
 ChartJS.register(
   CategoryScale,
@@ -88,6 +90,10 @@ ChartJS.register(
 );
 
 const Dashboard = () => {
+  console.log('Dashboard component loaded');
+  console.log('API object:', api);
+  console.log('Admin object:', api.admin);
+  
   const [tabValue, setTabValue] = useState(0);
   const navigate = useNavigate();
   
@@ -100,6 +106,20 @@ const Dashboard = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [statusChangeLoading, setStatusChangeLoading] = useState(false);
   const [statusUpdateSuccess, setStatusUpdateSuccess] = useState(false);
+
+  // Activity logs state
+  const [activityLogs, setActivityLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsSearchTerm, setLogsSearchTerm] = useState('');
+  const [logsModuleFilter, setLogsModuleFilter] = useState('all');
+  const [logsPage, setLogsPage] = useState(1);
+  const [logsTotalPages, setLogsTotalPages] = useState(0);
+
+  // Log file state
+  const [logFileEntries, setLogFileEntries] = useState([]);
+  const [logFileLoading, setLogFileLoading] = useState(false);
+  const [logFileStats, setLogFileStats] = useState(null);
+  const [logFileLines, setLogFileLines] = useState(100);
 
   const stats = [
     {
@@ -185,7 +205,7 @@ const Dashboard = () => {
       if (statusFilter !== 'all') {
         params.status = statusFilter;
       }
-      const response = await complaints.getAll(params);
+      const response = await api.complaints.getAll(params);
       setComplaintsList(response.data.data || []);
     } catch (error) {
       console.error('Error fetching complaints:', error);
@@ -200,11 +220,73 @@ const Dashboard = () => {
     }
   }, [tabValue, statusFilter]);
 
+  // Fetch activity logs
+  const fetchActivityLogs = async () => {
+    setLogsLoading(true);
+    try {
+      console.log('admin object:', api.admin); // Debug log
+      const params = {
+        page: logsPage,
+        limit: 20
+      };
+      if (logsModuleFilter !== 'all') {
+        params.module = logsModuleFilter;
+      }
+      console.log('Fetching activity logs with params:', params); // Debug log
+      const response = await api.admin.getLogs(params);
+      console.log('Activity logs response:', response); // Debug log
+      setActivityLogs(response.data.data.logs || []);
+      setLogsTotalPages(response.data.data.totalPages || 0);
+    } catch (error) {
+      console.error('Error fetching activity logs:', error);
+      console.error('Error details:', error.response?.data || error.message);
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (tabValue === 3) { // Activity logs tab
+      fetchActivityLogs();
+    }
+  }, [tabValue, logsPage, logsModuleFilter]);
+
+  // Fetch log file
+  const fetchLogFile = async () => {
+    setLogFileLoading(true);
+    try {
+      const [logResponse, statsResponse] = await Promise.all([
+        api.admin.getLogFile(logFileLines),
+        api.admin.getLogStats()
+      ]);
+      
+      setLogFileEntries(logResponse.data.data.entries || []);
+      setLogFileStats(logResponse.data.data.stats || statsResponse.data.data);
+    } catch (error) {
+      console.error('Error fetching log file:', error);
+    } finally {
+      setLogFileLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (tabValue === 4) { // Log file tab
+      fetchLogFile();
+    }
+  }, [tabValue, logFileLines]);
+
   // Filter complaints based on search term
   const filteredComplaints = complaintsList.filter(complaint =>
     complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     complaint.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     complaint.user?.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Filter activity logs based on search term
+  const filteredActivityLogs = activityLogs.filter(log =>
+    log.action?.toLowerCase().includes(logsSearchTerm.toLowerCase()) ||
+    log.user?.name?.toLowerCase().includes(logsSearchTerm.toLowerCase()) ||
+    log.module?.toLowerCase().includes(logsSearchTerm.toLowerCase())
   );
 
   // Get status color
@@ -238,6 +320,18 @@ const Dashboard = () => {
     }
   };
 
+  // Get activity icon based on module
+  const getActivityIcon = (module) => {
+    switch (module?.toLowerCase()) {
+      case 'complaints': return <Report />;
+      case 'subadmins': return <SupervisorAccount />;
+      case 'departments': return <Business />;
+      case 'users': return <People />;
+      case 'admin': return <Settings />;
+      default: return <Assignment />;
+    }
+  };
+
   // Format date
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -254,7 +348,7 @@ const Dashboard = () => {
     setStatusChangeLoading(true);
     setStatusUpdateSuccess(false);
     try {
-      await complaints.updateStatus(complaintId, { status: newStatus });
+      await api.complaints.updateStatus(complaintId, { status: newStatus });
       
       // Update the complaint in the list
       setComplaintsList(prevComplaints => 
@@ -282,6 +376,8 @@ const Dashboard = () => {
       setStatusChangeLoading(false);
     }
   };
+
+
 
   return (
     <Container maxWidth="xl">
@@ -319,6 +415,8 @@ const Dashboard = () => {
             <Tab label="Overview" />
             <Tab label="Analytics" />
             <Tab label="Complaints" />
+            <Tab label="Activity Logs" />
+            <Tab label="Log File" />
           </Tabs>
         </Paper>
 
@@ -633,6 +731,268 @@ const Dashboard = () => {
                     </Grid>
                   ))
                 )}
+              </Grid>
+            )}
+          </Box>
+        )}
+
+        {/* Activity Logs Tab */}
+        {tabValue === 3 && (
+          <Box>
+            {/* Search and Filter Bar */}
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    placeholder="Search activity logs by action, user, or module..."
+                    value={logsSearchTerm}
+                    onChange={(e) => setLogsSearchTerm(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Search />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <FormControl fullWidth>
+                    <InputLabel>Module Filter</InputLabel>
+                    <Select
+                      value={logsModuleFilter}
+                      label="Module Filter"
+                      onChange={(e) => setLogsModuleFilter(e.target.value)}
+                    >
+                      <MenuItem value="all">All Modules</MenuItem>
+                      <MenuItem value="Complaints">Complaints</MenuItem>
+                      <MenuItem value="Subadmins">Subadmins</MenuItem>
+                      <MenuItem value="Departments">Departments</MenuItem>
+                      <MenuItem value="Users">Users</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<FilterList />}
+                    onClick={fetchActivityLogs}
+                    disabled={logsLoading}
+                  >
+                    {logsLoading ? <CircularProgress size={20} /> : 'Refresh'}
+                  </Button>
+                </Grid>
+              </Grid>
+            </Paper>
+
+            {/* Activity Logs Grid */}
+            {logsLoading ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Grid container spacing={3}>
+                {filteredActivityLogs.length === 0 ? (
+                  <Grid item xs={12}>
+                    <Paper sx={{ p: 4, textAlign: 'center' }}>
+                      <Typography variant="h6" color="text.secondary">
+                        No activity logs found
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {logsSearchTerm || logsModuleFilter !== 'all' 
+                          ? 'Try adjusting your search or filter criteria'
+                          : 'No activity logs available yet'
+                        }
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                ) : (
+                  filteredActivityLogs.map((log, index) => (
+                    <Grid item xs={12} key={index}>
+                      <Paper sx={{ p: 2, borderRadius: 2 }}>
+                        <Box display="flex" justifyContent="space-between" alignItems="center">
+                          <Box display="flex" alignItems="center" gap={2}>
+                            <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
+                              {getActivityIcon(log.module)}
+                            </Avatar>
+                            <Box>
+                              <Typography variant="body2" color="text.secondary">
+                                <strong>{log.user?.name || 'System'}:</strong> {log.action}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Module: {log.module}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                Timestamp: {formatDate(log.timestamp)}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <IconButton size="small">
+                            <MoreVert />
+                          </IconButton>
+                        </Box>
+                      </Paper>
+                    </Grid>
+                  ))
+                )}
+              </Grid>
+            )}
+            
+            {/* Pagination */}
+            {logsTotalPages > 1 && (
+              <Box display="flex" justifyContent="center" mt={3}>
+                <Pagination
+                  count={logsTotalPages}
+                  page={logsPage}
+                  onChange={(e, newPage) => setLogsPage(newPage)}
+                  color="primary"
+                  showFirstButton
+                  showLastButton
+                />
+              </Box>
+            )}
+          </Box>
+        )}
+
+        {/* Log File Tab */}
+        {tabValue === 4 && (
+          <Box>
+            {/* Controls Bar */}
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth>
+                    <InputLabel>Number of Lines</InputLabel>
+                    <Select
+                      value={logFileLines}
+                      label="Number of Lines"
+                      onChange={(e) => setLogFileLines(e.target.value)}
+                    >
+                      <MenuItem value={50}>Last 50 lines</MenuItem>
+                      <MenuItem value={100}>Last 100 lines</MenuItem>
+                      <MenuItem value={200}>Last 200 lines</MenuItem>
+                      <MenuItem value={500}>Last 500 lines</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<FilterList />}
+                    onClick={fetchLogFile}
+                    disabled={logFileLoading}
+                  >
+                    {logFileLoading ? <CircularProgress size={20} /> : 'Refresh'}
+                  </Button>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    color="error"
+                    startIcon={<Cancel />}
+                    onClick={async () => {
+                      if (window.confirm('Are you sure you want to clear the log file? This action cannot be undone.')) {
+                        try {
+                          await api.admin.clearLogFile();
+                          fetchLogFile();
+                        } catch (error) {
+                          console.error('Error clearing log file:', error);
+                        }
+                      }
+                    }}
+                  >
+                    Clear Log File
+                  </Button>
+                </Grid>
+              </Grid>
+            </Paper>
+
+            {/* Log File Content */}
+            {logFileLoading ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <Grid container spacing={3}>
+                {/* Log File Statistics */}
+                {logFileStats && (
+                  <Grid item xs={12}>
+                    <Paper sx={{ p: 3, mb: 3 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Log File Statistics
+                      </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={3}>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>Total Lines:</strong> {logFileStats.totalLines}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={3}>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>File Size:</strong> {(logFileStats.fileSize / 1024).toFixed(2)} KB
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={3}>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>Last Modified:</strong> {logFileStats.lastModified ? new Date(logFileStats.lastModified).toLocaleString() : 'N/A'}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={3}>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>Showing:</strong> Last {logFileLines} lines
+                          </Typography>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  </Grid>
+                )}
+
+                {/* Log Entries */}
+                <Grid item xs={12}>
+                  <Paper sx={{ p: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Activity Log Entries
+                    </Typography>
+                    {logFileEntries.length === 0 ? (
+                      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                        No log entries found. The log file might be empty or the specified number of lines exceeds available entries.
+                      </Typography>
+                    ) : (
+                      <Box sx={{ maxHeight: 600, overflow: 'auto' }}>
+                        {logFileEntries.map((entry, index) => (
+                          <Paper 
+                            key={index} 
+                            sx={{ 
+                              p: 2, 
+                              mb: 1, 
+                              backgroundColor: entry.includes('[ERROR]') ? 'error.light' : entry.includes('[WARNING]') ? 'warning.light' : 'grey.50',
+                              border: '1px solid',
+                              borderColor: 'divider'
+                            }}
+                          >
+                            <Typography 
+                              variant="body2" 
+                              component="pre" 
+                              sx={{ 
+                                fontFamily: 'monospace',
+                                fontSize: '0.875rem',
+                                margin: 0,
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-word'
+                              }}
+                            >
+                              {entry}
+                            </Typography>
+                          </Paper>
+                        ))}
+                      </Box>
+                    )}
+                  </Paper>
+                </Grid>
               </Grid>
             )}
           </Box>

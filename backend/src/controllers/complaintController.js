@@ -12,7 +12,7 @@ const { Op } = require('sequelize');
 const createComplaint = async (req, res) => {
   try {
     const { title, description, dept_id, severity } = req.body;
-    const emp_id = req.user.emp_id; // Fixed: using emp_id instead of id
+    const emp_id = req.user.emp_id;
 
     // Validate title length
     if (!title || title.length < 3 || title.length > 25) {
@@ -29,14 +29,6 @@ const createComplaint = async (req, res) => {
         error: 'Description must be between 10 and 100 characters'
       });
     }
-
-    // Validate severity
-    // if (!['High', 'Medium', 'Low'].includes(severity)) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     error: 'Severity must be High, Medium, or Low'
-    //   });
-    // }
 
     // Create complaint
     const complaint = await Complaint.create({
@@ -61,12 +53,19 @@ const createComplaint = async (req, res) => {
       await createComplaintNotification(complaint, subadmin.emp_id);
     }
 
-    // Log activity
+    // Log complaint creation
     await createActivityLog({
       user_id: emp_id,
       activity_type: 'CREATE',
-      description: `Created complaint: ${title}`,
-      module: 'Complaint'
+      description: `Complaint created: "${title}"`,
+      module: 'Complaint',
+      details: {
+        complaint_id: complaint.complaint_id,
+        title,
+        severity,
+        department_id: dept_id,
+        status: 'Pending'
+      }
     });
 
     res.status(201).json({
@@ -76,6 +75,15 @@ const createComplaint = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in createComplaint:', error);
+    
+    // Log complaint creation error
+    await createActivityLog({
+      user_id: req.user?.emp_id || 'unknown',
+      activity_type: 'CREATE_ERROR',
+      description: `Failed to create complaint: ${error.message}`,
+      module: 'Complaint',
+      details: { error: error.message }
+    });
     
     if (error.name === 'SequelizeValidationError') {
       return res.status(400).json({

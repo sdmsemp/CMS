@@ -82,6 +82,9 @@ export const admin = {
   getLogs: (params) => api.get('/admin/logs', { params }),
   getDepartments: () => api.get('/departments'), // Updated to use correct endpoint
   createSubadmin: (data) => api.post('/admin/subadmin', data),
+  getLogFile: (lines) => api.get('/admin/log-file', { params: { lines } }),
+  clearLogFile: () => api.post('/admin/log-file/clear'),
+  getLogStats: () => api.get('/admin/log-file/stats'),
 };
 
 // Role endpoints

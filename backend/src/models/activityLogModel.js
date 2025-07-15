@@ -19,7 +19,15 @@ const ActivityLog = sequelize.define('ActivityLog', {
     type: DataTypes.STRING(100),
     allowNull: false
   },
+  module: {
+    type: DataTypes.STRING(50),
+    allowNull: true
+  },
   timestamp: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  },
+  created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
   }
@@ -32,6 +40,9 @@ const ActivityLog = sequelize.define('ActivityLog', {
     },
     {
       fields: ['timestamp']
+    },
+    {
+      fields: ['module']
     }
   ]
 });

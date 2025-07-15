@@ -32,12 +32,8 @@ Complaint.hasMany(SubadminTask, { foreignKey: 'complaint_id' });
 SubadminTask.belongsTo(Complaint, { foreignKey: 'complaint_id' });
 
 // Activity Log Association
-ActivityLog.belongsTo(User, { foreignKey: 'emp_id' });
+ActivityLog.belongsTo(User, { foreignKey: 'emp_id', as: 'user' });
 User.hasMany(ActivityLog, { foreignKey: 'emp_id' });
-
-// User - ActivityLog Association
-User.hasMany(ActivityLog, { foreignKey: 'emp_id' });
-ActivityLog.belongsTo(User, { foreignKey: 'emp_id' });
 
 // User - Notification Association
 User.hasMany(Notification, { foreignKey: 'emp_id' });

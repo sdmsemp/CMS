@@ -1,0 +1,2 @@
+[2025-07-15T12:22:00.082Z] [WARNING] [Admin] DELETE: Activity log file cleared by admin | User ID: 100 | Details: {"action":"clear_log_file"}
+[2025-07-15T12:24:04.832Z] [INFO] [Admin] CREATE: Created new subadmin: subadmin for department 9 | User ID: 100

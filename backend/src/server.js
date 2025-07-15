@@ -57,7 +57,7 @@ app.use((err, req, res, next) => {
   const PORT = process.env.PORT || 5000;
 
   // Sync database and start server
-  db.sequelize.sync({ force: false, alter: false })
+  db.sequelize.sync({ force: false, alter: true })
     .then(async () => {
       console.log('Database connection established successfully.');
       

@@ -5,7 +5,7 @@ const { registerSchema, loginSchema } = require('../validation/authValidation');
 const { logger } = require('../utils/logger');
 const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
-
+const { createActivityLog } = require('../utils/activityLogger');
 
 
 // Generate JWT tokens
@@ -119,6 +119,15 @@ exports.login = async (req, res) => {
     });
 
     if (!user) {
+      // Log failed login attempt
+      await createActivityLog({
+        user_id: 'unknown',
+        activity_type: 'LOGIN_FAILED',
+        description: `Failed login attempt for email: ${req.body.email}`,
+        module: 'Auth',
+        details: { email: req.body.email, reason: 'User not found' }
+      });
+
       return res.status(401).json({
         success: false,
         error: 'Invalid email or password'
@@ -128,6 +137,15 @@ exports.login = async (req, res) => {
     // Validate password
     const isValidPassword = await user.validatePassword(req.body.password);
     if (!isValidPassword) {
+      // Log failed login attempt
+      await createActivityLog({
+        user_id: user.emp_id,
+        activity_type: 'LOGIN_FAILED',
+        description: `Failed login attempt for user: ${user.name}`,
+        module: 'Auth',
+        details: { email: req.body.email, reason: 'Invalid password' }
+      });
+
       return res.status(401).json({
         success: false,
         error: 'Invalid email or password'
@@ -139,6 +157,19 @@ exports.login = async (req, res) => {
 
     // Update user's refresh token
     await user.update({ refresh_token: tokens.refreshToken });
+
+    // Log successful login
+    await createActivityLog({
+      user_id: user.emp_id,
+      activity_type: 'LOGIN',
+      description: `User logged in successfully: ${user.name} (${user.email})`,
+      module: 'Auth',
+      details: { 
+        email: req.body.email, 
+        role: user.role?.name || 'Unknown',
+        department: user.department?.name || 'Unknown'
+      }
+    });
 
     res.json({
       success: true,

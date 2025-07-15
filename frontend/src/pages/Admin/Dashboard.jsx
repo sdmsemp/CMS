@@ -303,7 +303,7 @@ const Dashboard = () => {
         </Grid>
       </Box>
     </Container>
-  );
+);
 };
 
 export default Dashboard;

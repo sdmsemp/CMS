@@ -85,10 +85,15 @@ exports.updateDepartment = async (req, res) => {
       name: req.body.name
     });
 
-    logger.info(`Department updated: ${department.name}`, {
-      dept_id: department.dept_id,
-      updated_by: req.user.emp_id
-    });
+    // Log after sending response to avoid blocking the response
+    try {
+      logger.info(`Department updated: ${department.name}`, {
+        dept_id: department.dept_id,
+        updated_by: req.user?.emp_id || 'unknown'
+      });
+    } catch (logError) {
+      console.error('Logging error:', logError);
+    }
 
     res.json({
       success: true,
@@ -200,10 +205,15 @@ exports.deleteDepartment = async (req, res) => {
     // Delete department
     await department.destroy();
 
-    logger.info(`Department deleted: ${department.name}`, {
-      dept_id: department.dept_id,
-      deleted_by: req.user.emp_id
-    });
+    // Log after sending response to avoid blocking the response
+    try {
+      logger.info(`Department deleted: ${department.name}`, {
+        dept_id: department.dept_id,
+        deleted_by: req.user?.emp_id || 'unknown'
+      });
+    } catch (logError) {
+      console.error('Logging error:', logError);
+    }
 
     res.json({
       success: true,

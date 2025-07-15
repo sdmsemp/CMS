@@ -1,0 +1,42 @@
+<svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+  </style>
+  
+  <!-- Background Elements -->
+  <circle cx="300" cy="200" r="150" fill="#E8F5E9" class="animate-float" />
+  <circle cx="150" cy="100" r="20" fill="#C8E6C9" />
+  <circle cx="450" cy="300" r="30" fill="#C8E6C9" />
+  
+  <!-- Desk -->
+  <rect x="200" y="250" width="200" height="10" fill="#43A047" />
+  <rect x="220" y="260" width="160" height="60" fill="#2E7D32" />
+  
+  <!-- Computer -->
+  <rect x="250" y="180" width="100" height="70" rx="5" fill="#43A047" />
+  <rect x="260" y="190" width="80" height="50" rx="2" fill="#FFFFFF" />
+  
+  <!-- Person -->
+  <circle cx="300" cy="150" r="20" fill="#2E7D32" />
+  <rect x="290" y="170" width="20" height="40" fill="#2E7D32" />
+  <rect x="280" y="190" width="40" height="20" fill="#2E7D32" />
+  
+  <!-- Books -->
+  <rect x="380" y="220" width="30" height="30" fill="#66BB6A" />
+  <rect x="390" y="210" width="30" height="40" fill="#81C784" />
+  
+  <!-- Coffee Cup -->
+  <rect x="190" y="220" width="20" height="30" rx="5" fill="#66BB6A" />
+  <rect x="185" y="215" width="30" height="5" rx="2" fill="#81C784" />
+  
+  <!-- Decorative Elements -->
+  <circle cx="150" cy="300" r="10" fill="#A5D6A7" />
+  <circle cx="450" cy="150" r="15" fill="#A5D6A7" />
+  <circle cx="400" cy="100" r="8" fill="#A5D6A7" />
+</svg> 

@@ -48,10 +48,10 @@ const AppContent = () => {
     <div>
       {!isAuthPage && <Navbar />}
       <main>
-        <div className="w-full max-w-5xl mx-auto">
-          <Routes>
-            <Route path="/" element={<Navigate to="/Register" />} />
-            <Route path="/login" element={<Login />} />
+          <div className="w-full max-w-5xl mx-auto">
+            <Routes>
+              <Route path="/" element={<Navigate to="/Register" />} />
+              <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/profile" element={
               <PrivateRoute allowedRoles={["admin", "subadmin", "user"]}>
@@ -60,8 +60,8 @@ const AppContent = () => {
             } />
             
             {/* User Routes */}
-            <Route path="/user/dashboard" element={
-              <PrivateRoute allowedRoles={["user"]}>
+              <Route path="/user/dashboard" element={
+                <PrivateRoute allowedRoles={["user"]}>
                 <ComplaintList showCreateButton={true} />
               </PrivateRoute>
             } />
@@ -69,10 +69,10 @@ const AppContent = () => {
             <Route path="/user/complaints/create" element={
               <PrivateRoute allowedRoles={["user"]}>
                 <div className="container mx-auto p-4">
-                  <ComplaintForm onSubmit={() => {}} />
-                </div>
-              </PrivateRoute>
-            } />
+                    <ComplaintForm onSubmit={() => {}} />
+                  </div>
+                </PrivateRoute>
+              } />
 
             {/* Subadmin Routes */}
             <Route path="/subadmin/complaints" element={
@@ -85,16 +85,16 @@ const AppContent = () => {
                 <TaskForm />
               </PrivateRoute>
             } />
-            <Route path="/subadmin/dashboard" element={
-              <PrivateRoute allowedRoles={["subadmin"]}>
+              <Route path="/subadmin/dashboard" element={
+                <PrivateRoute allowedRoles={["subadmin"]}>
                 <ComplaintView />
-              </PrivateRoute>
-            } />
+                </PrivateRoute>
+              } />
 
             {/* Admin Routes */}
-            <Route path="/admin/dashboard" element={
-              <PrivateRoute allowedRoles={["admin"]}>
-                <Dashboard />
+              <Route path="/admin/dashboard" element={
+                <PrivateRoute allowedRoles={["admin"]}>
+                    <Dashboard />
               </PrivateRoute>
             } />
             <Route path="/admin/create-subadmin" element={
@@ -109,13 +109,13 @@ const AppContent = () => {
             } />
             <Route path="/admin/users" element={
               <PrivateRoute allowedRoles={["admin"]}>
-                <UserList users={[]} />
-              </PrivateRoute>
-            } />
-          </Routes>
-        </div>
-      </main>
-    </div>
+                    <UserList users={[]} />
+                </PrivateRoute>
+              } />
+            </Routes>
+          </div>
+        </main>
+      </div>
   );
 };
 
@@ -126,8 +126,8 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <AppContent />
-        </BrowserRouter>
-      </AuthProvider>
+    </BrowserRouter>
+  </AuthProvider>
     </LocalizationProvider>
   </ThemeProvider>
 );

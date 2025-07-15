@@ -495,6 +495,11 @@ router.get('/dashboard/stats', adminAuth, async (req, res) => {
   try {
     console.log('Dashboard stats endpoint called');
     
+    // Get pagination parameters for recent activities
+    const activitiesPage = parseInt(req.query.activitiesPage) || 1;
+    const activitiesLimit = parseInt(req.query.activitiesLimit) || 5;
+    const activitiesOffset = (activitiesPage - 1) * activitiesLimit;
+    
     // Simple counts without complex associations
     const departmentCount = await Department.count();
     const subadminCount = await User.count({ where: { role_id: 2 } });
@@ -536,28 +541,32 @@ router.get('/dashboard/stats', adminAuth, async (req, res) => {
       }
     ];
 
-    // Get recent activities (simplified)
-    const recentActivities = await ActivityLog.findAll({
+    // Get recent activities with pagination
+    const recentActivities = await ActivityLog.findAndCountAll({
       order: [['timestamp', 'DESC']],
-      limit: 10,
+      limit: activitiesLimit,
+      offset: activitiesOffset,
       raw: true
     });
 
     // Format recent activities
-    const formattedActivities = recentActivities.map(activity => ({
+    const formattedActivities = recentActivities.rows.map(activity => ({
       type: activity.module || 'system',
       text: `${activity.action} - ${activity.module || 'System'}`,
       time: new Date(activity.timestamp).toLocaleString(),
       icon: activity.module === 'Admin' ? 'Settings' : 'Assignment'
     }));
 
-    console.log('Sending response:', { stats, formattedActivities });
+    console.log('Sending response:', { stats, formattedActivities, totalActivities: recentActivities.count });
 
     res.status(200).json({
       success: true,
       data: {
         stats,
         recentActivities: formattedActivities,
+        totalActivities: recentActivities.count,
+        activitiesPage,
+        activitiesLimit,
         departments: departmentCount,
         subadmins: subadminCount,
         activeUsers: userCount,

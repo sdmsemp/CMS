@@ -115,18 +115,17 @@ const Dashboard = () => {
   const [logsPage, setLogsPage] = useState(1);
   const [logsTotalPages, setLogsTotalPages] = useState(0);
 
-  // Log file state
-  const [logFileEntries, setLogFileEntries] = useState([]);
-  const [logFileLoading, setLogFileLoading] = useState(false);
-  const [logFileStats, setLogFileStats] = useState(null);
-  const [logFileLines, setLogFileLines] = useState(100);
-
   // Remove static arrays for stats, departmentPerformance, userActivity, recentActivities
   // Add state for dynamic dashboard data
   const [dashboardStats, setDashboardStats] = useState(null);
   const [dashboardCharts, setDashboardCharts] = useState(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState(null);
+
+  // Add state for recent activities pagination
+  const [recentActivitiesPage, setRecentActivitiesPage] = useState(1);
+  const [recentActivitiesLimit] = useState(5); // Show 5 activities per page
+  const [recentActivitiesTotal, setRecentActivitiesTotal] = useState(0);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -135,13 +134,17 @@ const Dashboard = () => {
       try {
         console.log('Fetching dashboard data...');
         const [statsRes, chartsRes] = await Promise.all([
-          api.admin.getDashboardStats(),
+          api.admin.getDashboardStats({ 
+            activitiesPage: recentActivitiesPage, 
+            activitiesLimit: recentActivitiesLimit 
+          }),
           api.admin.getDashboardCharts()
         ]);
         console.log('Dashboard stats response:', statsRes);
         console.log('Dashboard charts response:', chartsRes);
         setDashboardStats(statsRes.data.data);
         setDashboardCharts(chartsRes.data.data);
+        setRecentActivitiesTotal(statsRes.data.data.totalActivities || 0);
       } catch (err) {
         console.error('Dashboard data fetch error:', err);
         setDashboardError('Failed to load dashboard data: ' + (err.response?.data?.error || err.message));
@@ -150,7 +153,7 @@ const Dashboard = () => {
       }
     };
     fetchDashboardData();
-  }, []);
+  }, [recentActivitiesPage, recentActivitiesLimit]);
 
   // Fetch complaints
   const fetchComplaints = async () => {
@@ -205,30 +208,6 @@ const Dashboard = () => {
       fetchActivityLogs();
     }
   }, [tabValue, logsPage, logsModuleFilter]);
-
-  // Fetch log file
-  const fetchLogFile = async () => {
-    setLogFileLoading(true);
-    try {
-      const [logResponse, statsResponse] = await Promise.all([
-        api.admin.getLogFile(logFileLines),
-        api.admin.getLogStats()
-      ]);
-      
-      setLogFileEntries(logResponse.data.data.entries || []);
-      setLogFileStats(logResponse.data.data.stats || statsResponse.data.data);
-    } catch (error) {
-      console.error('Error fetching log file:', error);
-    } finally {
-      setLogFileLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (tabValue === 4) { // Log file tab
-      fetchLogFile();
-    }
-  }, [tabValue, logFileLines]);
 
   // Filter complaints based on search term
   const filteredComplaints = complaintsList.filter(complaint =>
@@ -415,7 +394,6 @@ const Dashboard = () => {
             <Tab label="Analytics" />
             <Tab label="Complaints" />
             <Tab label="Activity Logs" />
-            <Tab label="Log File" />
           </Tabs>
         </Paper>
 
@@ -533,9 +511,14 @@ const Dashboard = () => {
               {/* Recent Activities */}
               <Grid item xs={12} md={4}>
                 <Paper sx={{ p: 3, height: '100%' }}>
-                  <Typography variant="h6" gutterBottom>
-                    Recent Activities
-                  </Typography>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                    <Typography variant="h6">
+                      Recent Activities
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {recentActivitiesTotal} total
+                    </Typography>
+                  </Box>
                   {dashboardLoading ? (
                     <Box display="flex" justifyContent="center" p={4}>
                       <CircularProgress />
@@ -545,33 +528,50 @@ const Dashboard = () => {
                       <Typography variant="h6" color="error">{dashboardError}</Typography>
                     </Box>
                   ) : dashboardStats?.recentActivities ? (
-                    <List>
-                      {dashboardStats.recentActivities.map((activity, index) => (
-                        <React.Fragment key={index}>
-                          <ListItem alignItems="flex-start">
-                            <ListItemIcon>
-                              {activity.icon === 'Settings' && <Settings color="primary" />}
-                              {activity.icon === 'Assignment' && <Assignment color="secondary" />}
-                              {activity.icon === 'CheckCircle' && <CheckCircle color="success" />}
-                              {!['Settings', 'Assignment', 'CheckCircle'].includes(activity.icon) && <Assignment color="action" />}
-                            </ListItemIcon>
-                            <ListItemText
-                              primary={activity.text}
-                              secondary={
-                                <Typography
-                                  component="span"
-                                  variant="body2"
-                                  color="text.secondary"
-                                >
-                                  {activity.time}
-                                </Typography>
-                              }
-                            />
-                          </ListItem>
-                          {index < dashboardStats.recentActivities.length - 1 && <Divider />}
-                        </React.Fragment>
-                      ))}
-                    </List>
+                    <>
+                      <List sx={{ minHeight: 300 }}>
+                        {dashboardStats.recentActivities.map((activity, index) => (
+                          <React.Fragment key={index}>
+                            <ListItem alignItems="flex-start">
+                              <ListItemIcon>
+                                {activity.icon === 'Settings' && <Settings color="primary" />}
+                                {activity.icon === 'Assignment' && <Assignment color="secondary" />}
+                                {activity.icon === 'CheckCircle' && <CheckCircle color="success" />}
+                                {!['Settings', 'Assignment', 'CheckCircle'].includes(activity.icon) && <Assignment color="action" />}
+                              </ListItemIcon>
+                              <ListItemText
+                                primary={activity.text}
+                                secondary={
+                                  <Typography
+                                    component="span"
+                                    variant="body2"
+                                    color="text.secondary"
+                                  >
+                                    {activity.time}
+                                  </Typography>
+                                }
+                              />
+                            </ListItem>
+                            {index < dashboardStats.recentActivities.length - 1 && <Divider />}
+                          </React.Fragment>
+                        ))}
+                      </List>
+                      
+                      {/* Pagination */}
+                      {recentActivitiesTotal > recentActivitiesLimit && (
+                        <Box display="flex" justifyContent="center" mt={2}>
+                          <Pagination
+                            count={Math.ceil(recentActivitiesTotal / recentActivitiesLimit)}
+                            page={recentActivitiesPage}
+                            onChange={(event, page) => setRecentActivitiesPage(page)}
+                            size="small"
+                            color="primary"
+                            showFirstButton
+                            showLastButton
+                          />
+                        </Box>
+                      )}
+                    </>
                   ) : (
                     <Box display="flex" justifyContent="center" p={4}>
                       <Typography variant="body2" color="text.secondary">No recent activities</Typography>
@@ -911,148 +911,6 @@ const Dashboard = () => {
                   showLastButton
                 />
               </Box>
-            )}
-          </Box>
-        )}
-
-        {/* Log File Tab */}
-        {tabValue === 4 && (
-          <Box>
-            {/* Controls Bar */}
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} md={4}>
-                  <FormControl fullWidth>
-                    <InputLabel>Number of Lines</InputLabel>
-                    <Select
-                      value={logFileLines}
-                      label="Number of Lines"
-                      onChange={(e) => setLogFileLines(e.target.value)}
-                    >
-                      <MenuItem value={50}>Last 50 lines</MenuItem>
-                      <MenuItem value={100}>Last 100 lines</MenuItem>
-                      <MenuItem value={200}>Last 200 lines</MenuItem>
-                      <MenuItem value={500}>Last 500 lines</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    startIcon={<FilterList />}
-                    onClick={fetchLogFile}
-                    disabled={logFileLoading}
-                  >
-                    {logFileLoading ? <CircularProgress size={20} /> : 'Refresh'}
-                  </Button>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    color="error"
-                    startIcon={<Cancel />}
-                    onClick={async () => {
-                      if (window.confirm('Are you sure you want to clear the log file? This action cannot be undone.')) {
-                        try {
-                          await api.admin.clearLogFile();
-                          fetchLogFile();
-                        } catch (error) {
-                          console.error('Error clearing log file:', error);
-                        }
-                      }
-                    }}
-                  >
-                    Clear Log File
-                  </Button>
-                </Grid>
-              </Grid>
-            </Paper>
-
-            {/* Log File Content */}
-            {logFileLoading ? (
-              <Box display="flex" justifyContent="center" p={4}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <Grid container spacing={3}>
-                {/* Log File Statistics */}
-                {logFileStats && (
-                  <Grid item xs={12}>
-                    <Paper sx={{ p: 3, mb: 3 }}>
-                      <Typography variant="h6" gutterBottom>
-                        Log File Statistics
-                      </Typography>
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={3}>
-                          <Typography variant="body2" color="text.secondary">
-                            <strong>Total Lines:</strong> {logFileStats.totalLines}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={3}>
-                          <Typography variant="body2" color="text.secondary">
-                            <strong>File Size:</strong> {(logFileStats.fileSize / 1024).toFixed(2)} KB
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={3}>
-                          <Typography variant="body2" color="text.secondary">
-                            <strong>Last Modified:</strong> {logFileStats.lastModified ? new Date(logFileStats.lastModified).toLocaleString() : 'N/A'}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={3}>
-                          <Typography variant="body2" color="text.secondary">
-                            <strong>Showing:</strong> Last {logFileLines} lines
-                          </Typography>
-                        </Grid>
-                      </Grid>
-                    </Paper>
-                  </Grid>
-                )}
-
-                {/* Log Entries */}
-                <Grid item xs={12}>
-                  <Paper sx={{ p: 3 }}>
-                    <Typography variant="h6" gutterBottom>
-                      Activity Log Entries
-                    </Typography>
-                    {logFileEntries.length === 0 ? (
-                      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-                        No log entries found. The log file might be empty or the specified number of lines exceeds available entries.
-                      </Typography>
-                    ) : (
-                      <Box sx={{ maxHeight: 600, overflow: 'auto' }}>
-                        {logFileEntries.map((entry, index) => (
-                          <Paper 
-                            key={index} 
-                            sx={{ 
-                              p: 2, 
-                              mb: 1, 
-                              backgroundColor: entry.includes('[ERROR]') ? 'error.light' : entry.includes('[WARNING]') ? 'warning.light' : 'grey.50',
-                              border: '1px solid',
-                              borderColor: 'divider'
-                            }}
-                          >
-                            <Typography 
-                              variant="body2" 
-                              component="pre" 
-                              sx={{ 
-                                fontFamily: 'monospace',
-                                fontSize: '0.875rem',
-                                margin: 0,
-                                whiteSpace: 'pre-wrap',
-                                wordBreak: 'break-word'
-                              }}
-                            >
-                              {entry}
-                            </Typography>
-                          </Paper>
-                        ))}
-                      </Box>
-                    )}
-                  </Paper>
-                </Grid>
-              </Grid>
             )}
           </Box>
         )}

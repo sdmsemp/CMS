@@ -85,7 +85,7 @@ export const admin = {
   getLogFile: (lines) => api.get('/admin/log-file', { params: { lines } }),
   clearLogFile: () => api.post('/admin/log-file/clear'),
   getLogStats: () => api.get('/admin/log-file/stats'),
-  getDashboardStats: () => api.get('/admin/dashboard/stats'),
+  getDashboardStats: (params) => api.get('/admin/dashboard/stats', { params }),
   getDashboardCharts: () => api.get('/admin/dashboard/charts'),
 };
 

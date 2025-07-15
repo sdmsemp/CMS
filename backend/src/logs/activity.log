@@ -1,6 +1,1 @@
-[2025-07-15T12:22:00.082Z] [WARNING] [Admin] DELETE: Activity log file cleared by admin | User ID: 100 | Details: {"action":"clear_log_file"}
-[2025-07-15T12:24:04.832Z] [INFO] [Admin] CREATE: Created new subadmin: subadmin for department 9 | User ID: 100
-[2025-07-15T12:45:33.500Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
-[2025-07-15T12:50:40.921Z] [INFO] [Auth] LOGIN: User logged in successfully: kundan (om@starkdigital.in) | User ID: 485 | Details: {"email":"om@starkdigital.in","role":"Unknown","department":"Unknown"}
-[2025-07-15T12:51:08.715Z] [INFO] [Complaint] CREATE: Complaint created: "new compliant" | User ID: 485 | Details: {"complaint_id":4,"title":"new compliant","severity":"medium","department_id":1,"status":"Pending"}
-[2025-07-15T12:51:20.449Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-15T14:01:37.711Z] [WARNING] [Admin] DELETE: Activity log file cleared by admin | User ID: 100 | Details: {"action":"clear_log_file"}

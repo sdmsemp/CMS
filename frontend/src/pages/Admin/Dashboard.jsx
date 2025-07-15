@@ -60,28 +60,28 @@ const Dashboard = () => {
   const stats = [
     {
       title: 'Total Users',
-      value: '1,234',
+      value: '04',
       icon: <People />,
       color: 'primary.main',
       trend: '+12%'
     },
     {
       title: 'Active Complaints',
-      value: '56',
+      value: '10',
       icon: <Assignment />,
       color: 'error.main',
       trend: '-5%'
     },
     {
       title: 'Notifications',
-      value: '89',
+      value: '00',
       icon: <Notifications />,
       color: 'warning.main',
       trend: '+8%'
     },
     {
       title: 'Resolved Issues',
-      value: '432',
+      value: '7',
       icon: <TrendingUp />,
       color: 'success.main',
       trend: '+15%'
@@ -107,11 +107,11 @@ const Dashboard = () => {
   };
 
   const barChartData = {
-    labels: ['IT', 'HR', 'Finance', 'Operations', 'Marketing'],
+    labels: ['IT', 'HR', 'Finance', 'Admin', 'Marketing'],
     datasets: [
       {
         label: 'Active Tasks',
-        data: [12, 19, 3, 5, 2],
+        data: [19, 12, 3, 5, 2],
         backgroundColor: 'rgba(53, 162, 235, 0.5)'
       }
     ]

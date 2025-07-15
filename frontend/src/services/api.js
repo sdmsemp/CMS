@@ -106,6 +106,7 @@ export const complaints = {
   create: (data) => api.post('/complaints', data),
   getById: (id) => api.get(`/complaints/${id}`),
   getAll: (params) => api.get('/complaints', { params }),
+  updateStatus: (id, data) => api.put(`/complaints/${id}`, data),
 };
 
 // Subadmin task endpoints

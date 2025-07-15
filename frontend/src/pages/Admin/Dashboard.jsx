@@ -98,6 +98,8 @@ const Dashboard = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [statusChangeLoading, setStatusChangeLoading] = useState(false);
+  const [statusUpdateSuccess, setStatusUpdateSuccess] = useState(false);
 
   const stats = [
     {
@@ -245,6 +247,40 @@ const Dashboard = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  // Update complaint status
+  const updateComplaintStatus = async (complaintId, newStatus) => {
+    setStatusChangeLoading(true);
+    setStatusUpdateSuccess(false);
+    try {
+      await complaints.updateStatus(complaintId, { status: newStatus });
+      
+      // Update the complaint in the list
+      setComplaintsList(prevComplaints => 
+        prevComplaints.map(complaint => 
+          complaint.complaint_id === complaintId 
+            ? { ...complaint, status: newStatus }
+            : complaint
+        )
+      );
+      
+      // Update selected complaint if it's the same one
+      if (selectedComplaint && selectedComplaint.complaint_id === complaintId) {
+        setSelectedComplaint(prev => ({ ...prev, status: newStatus }));
+      }
+      
+      // Show success feedback
+      setStatusUpdateSuccess(true);
+      setTimeout(() => setStatusUpdateSuccess(false), 3000); // Hide after 3 seconds
+      
+      console.log(`Complaint status updated to ${newStatus}`);
+    } catch (error) {
+      console.error('Error updating complaint status:', error);
+      // Show error message (you can add a toast notification here)
+    } finally {
+      setStatusChangeLoading(false);
+    }
   };
 
   return (
@@ -659,6 +695,62 @@ const Dashboard = () => {
                   <Typography variant="body1">
                     {formatDate(selectedComplaint.created_at)}
                   </Typography>
+                </Grid>
+
+                {/* Status Change Section for Superadmin */}
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
+                    Update Status
+                  </Typography>
+                  
+                  {statusUpdateSuccess && (
+                    <Box sx={{ mb: 2, p: 1.5, bgcolor: 'success.light', borderRadius: 1, border: '1px solid', borderColor: 'success.main' }}>
+                      <Typography variant="body2" color="success.dark" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CheckCircle fontSize="small" />
+                        Status updated successfully!
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  <Box display="flex" gap={2} flexWrap="wrap">
+                    <Button
+                      variant={selectedComplaint.status === 'Pending' ? 'contained' : 'outlined'}
+                      color="warning"
+                      size="small"
+                      disabled={statusChangeLoading || selectedComplaint.status === 'Pending'}
+                      onClick={() => updateComplaintStatus(selectedComplaint.complaint_id, 'Pending')}
+                    >
+                      {statusChangeLoading ? <CircularProgress size={16} /> : 'Set Pending'}
+                    </Button>
+                    <Button
+                      variant={selectedComplaint.status === 'InProgress' ? 'contained' : 'outlined'}
+                      color="info"
+                      size="small"
+                      disabled={statusChangeLoading || selectedComplaint.status === 'InProgress'}
+                      onClick={() => updateComplaintStatus(selectedComplaint.complaint_id, 'InProgress')}
+                    >
+                      {statusChangeLoading ? <CircularProgress size={16} /> : 'Set In Progress'}
+                    </Button>
+                    <Button
+                      variant={selectedComplaint.status === 'Complete' ? 'contained' : 'outlined'}
+                      color="success"
+                      size="small"
+                      disabled={statusChangeLoading || selectedComplaint.status === 'Complete'}
+                      onClick={() => updateComplaintStatus(selectedComplaint.complaint_id, 'Complete')}
+                    >
+                      {statusChangeLoading ? <CircularProgress size={16} /> : 'Set Complete'}
+                    </Button>
+                    <Button
+                      variant={selectedComplaint.status === 'Rejected' ? 'contained' : 'outlined'}
+                      color="error"
+                      size="small"
+                      disabled={statusChangeLoading || selectedComplaint.status === 'Rejected'}
+                      onClick={() => updateComplaintStatus(selectedComplaint.complaint_id, 'Rejected')}
+                    >
+                      {statusChangeLoading ? <CircularProgress size={16} /> : 'Set Rejected'}
+                    </Button>
+                  </Box>
                 </Grid>
 
                 {selectedComplaint.response && (

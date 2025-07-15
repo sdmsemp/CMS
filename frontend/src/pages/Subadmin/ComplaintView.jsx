@@ -219,6 +219,21 @@ const ComplaintView = () => {
                       {complaint.description}
                     </Typography>
 
+                    {/* Task Response Section */}
+                    {complaint.SubadminTasks && complaint.SubadminTasks[0] && (
+                      <Box mb={2} p={2} bgcolor="grey.50" borderRadius={1}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          Your Response:
+                        </Typography>
+                        <Typography>
+                          {complaint.SubadminTasks[0].description}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+                          Responded on: {new Date(complaint.SubadminTasks[0].created_at).toLocaleString()}
+                        </Typography>
+                      </Box>
+                    )}
+
                     <Box display="flex" alignItems="center" gap={3} mb={2}>
                       <Box display="flex" alignItems="center" gap={1}>
                         <PriorityHigh fontSize="small" color={getSeverityColor(complaint.severity)} />
@@ -239,22 +254,25 @@ const ComplaintView = () => {
                        complaint.status.toLowerCase() !== 'completed' && 
                        complaint.status.toLowerCase() !== 'rejected' && (
                         <>
-                          <Button
-                            variant="outlined"
-                            startIcon={<CheckCircle />}
-                            onClick={() => handleCompleteComplaint(complaint)}
-                          >
-                            Mark Complete
-                          </Button>
-                          <Button
-                            variant="contained"
-                            startIcon={<Comment />}
-                            onClick={() => navigate('/subadmin/task/create', { 
-                              state: { complaint } 
-                            })}
-                          >
-                            Respond
-                          </Button>
+                          {complaint.SubadminTasks && complaint.SubadminTasks[0] ? (
+                            <Button
+                              variant="outlined"
+                              startIcon={<CheckCircle />}
+                              onClick={() => handleCompleteComplaint(complaint)}
+                            >
+                              Mark Complete
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="contained"
+                              startIcon={<Comment />}
+                              onClick={() => navigate('/subadmin/task/create', { 
+                                state: { complaint } 
+                              })}
+                            >
+                              Respond
+                            </Button>
+                          )}
                         </>
                       )}
                     </Box>

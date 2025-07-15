@@ -13,7 +13,8 @@ import {
   PersonAdd,
   Business,
   People,
-  Assignment
+  Assignment,
+  Report
 } from '@mui/icons-material';
 import NotificationBell from './NotificationBell';
  import { useAuth } from '../context/AuthContext';
@@ -44,6 +45,7 @@ const Navbar = () => {
   };
 
   const isAdmin = user?.role_id === 1;
+  const isEmployee = user?.role_id === 3;
 
   return (
     <AppBar position="static" elevation={1}>
@@ -82,6 +84,19 @@ const Navbar = () => {
             >
               Dashboard
             </Button>
+
+            {isEmployee && (
+              <>
+                <Button
+                  color="inherit"
+                  component={Link}
+                  to="/user/complaints"
+                  startIcon={<Report />}
+                >
+                  Complaints
+                </Button>
+              </>
+            )}
 
             {isAdmin && (
               <>
@@ -162,6 +177,22 @@ const Navbar = () => {
             Dashboard
           </MenuItem>
           
+          {isEmployee && (
+            <>
+              <Divider />
+              <MenuItem 
+                component={Link}
+                to="/user/complaints"
+                onClick={handleClose}
+              >
+                <ListItemIcon>
+                  <Report fontSize="small" />
+                </ListItemIcon>
+                Complaints
+              </MenuItem>
+            </>
+          )}
+
           {isAdmin && (
             <>
               <Divider />
@@ -205,7 +236,11 @@ const Navbar = () => {
           open={Boolean(userMenuAnchor)}
           onClose={handleClose}
         >
-          <MenuItem onClick={handleClose}>
+          <MenuItem 
+            component={Link}
+            to="/profile"
+            onClick={handleClose}
+          >
             <ListItemIcon>
               <Person fontSize="small" />
             </ListItemIcon>

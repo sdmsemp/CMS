@@ -68,22 +68,18 @@ const ComplaintView = () => {
 
     try {
       setLoading(true);
-      // Get the task from the SubadminTasks array
-      const task = complaint.SubadminTasks && complaint.SubadminTasks[0];
+      const response = await subadminTasks.updateComplaint(complaint.complaint_id, {
+        status: 'Complete'
+      });
       
-      if (!task) {
-        throw new Error('Please create a task first before marking the complaint as complete');
-      }
-
-      const response = await subadminTasks.completeTask(task.task_id);
       if (response.data.success) {
         await fetchComplaints();
       } else {
-        throw new Error(response.data.error || 'Failed to complete task');
+        throw new Error(response.data.error || 'Failed to complete complaint');
       }
     } catch (err) {
-      console.error('Error completing task:', err);
-      setError(err.response?.data?.error || err.message || 'Failed to complete task. Please try again.');
+      console.error('Error completing complaint:', err);
+      setError(err.response?.data?.error || err.message || 'Failed to complete complaint. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -247,7 +243,6 @@ const ComplaintView = () => {
                             variant="outlined"
                             startIcon={<CheckCircle />}
                             onClick={() => handleCompleteComplaint(complaint)}
-                            disabled={!complaint.SubadminTasks?.length}
                           >
                             Mark Complete
                           </Button>

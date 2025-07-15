@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
@@ -14,7 +14,8 @@ import {
   Alert,
   Avatar,
   InputAdornment,
-  Chip
+  Chip,
+  CircularProgress
 } from '@mui/material';
 import {
   Description,
@@ -22,6 +23,7 @@ import {
   Business,
   PriorityHigh
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
 // Severity display mapping for proper capitalization in UI
@@ -42,12 +44,33 @@ const ComplaintForm = () => {
     title: '',
     description: '',
     dept_id: '',
-    severity: 'low', // Changed to lowercase to match backend
+    severity: 'low',
     attachments: []
   });
+  const [departments, setDepartments] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingDepts, setLoadingDepts] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const response = await api.get('/departments');
+        if (response.data.success) {
+          setDepartments(response.data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching departments:', err);
+        setError('Failed to load departments');
+      } finally {
+        setLoadingDepts(false);
+      }
+    };
+
+    fetchDepartments();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -70,27 +93,48 @@ const ComplaintForm = () => {
 
     try {
       setLoading(true);
+      setError('');
       const response = await api.post('/complaints', {
         title: form.title,
         description: form.description,
         dept_id: form.dept_id,
-        severity: form.severity // Will be sent as lowercase
+        severity: form.severity
       });
 
-      setSuccess('Complaint submitted successfully!');
-      setForm({
-        title: '',
-        description: '',
-        dept_id: '',
-        severity: 'low', // Reset to lowercase
-        attachments: []
-      });
+      if (response.data.success) {
+        setSuccess('Complaint submitted successfully!');
+        // Reset form
+        setForm({
+          title: '',
+          description: '',
+          dept_id: '',
+          severity: 'low',
+          attachments: []
+        });
+        // Redirect to dashboard after 2 seconds
+        setTimeout(() => {
+          navigate('/user/dashboard');
+        }, 2000);
+      } else {
+        setError(response.data.error || 'Failed to submit complaint');
+      }
     } catch (err) {
+      console.error('Error submitting complaint:', err);
       setError(err.response?.data?.error || 'Failed to submit complaint');
     } finally {
       setLoading(false);
     }
   };
+
+  if (loadingDepts) {
+    return (
+      <Container maxWidth="md">
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="md">
@@ -162,10 +206,11 @@ const ComplaintForm = () => {
                     </InputAdornment>
                   }
                 >
-                  <MenuItem value={1}>IT Department</MenuItem>
-                  <MenuItem value={2}>HR Department</MenuItem>
-                  <MenuItem value={3}>Finance Department</MenuItem>
-                  <MenuItem value={4}>Facilities</MenuItem>
+                  {departments.map((dept) => (
+                    <MenuItem key={dept.dept_id} value={dept.dept_id}>
+                      {dept.name}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
 
@@ -197,7 +242,7 @@ const ComplaintForm = () => {
                 type="submit"
                 variant="contained"
                 size="large"
-                startIcon={<Send />}
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Send />}
                 disabled={loading}
               >
                 {loading ? 'Submitting...' : 'Submit Complaint'}

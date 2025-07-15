@@ -37,6 +37,10 @@ const Complaint = sequelize.define('Complaint', {
       len: [10, 100]
     }
   },
+  response: {
+    type: DataTypes.STRING(200),
+    allowNull: true
+  },
   severity: {
     type: DataTypes.ENUM('low', 'medium', 'high'),
     allowNull: false

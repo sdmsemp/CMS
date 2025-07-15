@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import api from '../services/api';
+import { auth } from '../services/api';
 import { setToken, removeToken, getToken } from '../utils/cookieStorage';
 
 export const AuthContext = createContext();
@@ -25,10 +25,11 @@ export const AuthProvider = ({ children }) => {
       const token = getToken();
       if (token) {
         try {
-          const res = await api.get('/auth/validate-token');
-          const user = res.data.user;
-          setUser({ ...user, role: roleMap[user.role_id] });
+          const res = await auth.getProfile();
+          const userData = res.data.data;
+          setUser({ ...userData, role: roleMap[userData.role_id] });
         } catch (err) {
+          console.error('Token validation error:', err);
           removeToken();
           setUser(null);
         }
@@ -40,21 +41,21 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await api.post('/auth/login', { email, password });
-      setToken(res.data.data.tokens.accessToken);
-      const user = res.data.data.user;
-      setUser({ ...user, role: roleMap[user.role_id] });
+      const res = await auth.login({ email, password });
+      const { tokens, user: userData } = res.data.data;
+      setToken(tokens.accessToken);
+      setUser({ ...userData, role: roleMap[userData.role_id] });
       setError(null);
       return true;
     } catch (err) {
-      setError('Invalid credentials');
+      setError(err.response?.data?.error || 'Invalid credentials');
       return false;
     }
   };
 
   const logout = async () => {
     try {
-      await api.post('/auth/logout');
+      await auth.logout();
     } catch (err) {
       console.error('Logout error:', err);
     } finally {

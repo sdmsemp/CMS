@@ -326,3 +326,40 @@ exports.logout = async (req, res) => {
     });
   }
 }; 
+
+// Get user profile
+exports.getProfile = async (req, res) => {
+  try {
+    console.log('Getting profile for user:', req.user);
+    
+    const user = await User.findOne({
+      where: { emp_id: req.user.emp_id },
+      attributes: ['emp_id', 'name', 'email', 'role_id', 'dept_id', ['created_at', 'createdAt']],
+      include: [{
+        model: Department,
+        attributes: ['dept_id', 'name']
+      }]
+    });
+
+    console.log('Found user:', user);
+
+    if (!user) {
+      console.log('User not found in database');
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+}; 

@@ -16,27 +16,50 @@ const publicRoutes = [
 ];
 
 // Request interceptor for adding auth token
-api.interceptors.request.use(config => {
-  // Check if the route is public
-  const isPublicRoute = publicRoutes.some(route => config.url.includes(route));
-  
-  // Only add token for protected routes
-  if (!isPublicRoute) {
-    const token = getToken();
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(
+  config => {
+    // Check if the route is public
+    const isPublicRoute = publicRoutes.some(route => config.url.includes(route));
+    
+    // Only add token for protected routes
+    if (!isPublicRoute) {
+      const token = getToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  error => {
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 // Response interceptor for handling errors
 api.interceptors.response.use(
   response => response,
   error => {
-    // Only redirect to login for auth errors on protected routes
-    if (error.response?.status === 401 && !publicRoutes.some(route => error.config.url.includes(route))) {
-      removeToken();
-      window.location.href = '/login';
+    // Handle network errors
+    if (!error.response) {
+      return Promise.reject({
+        response: {
+          data: {
+            success: false,
+            error: 'Network error. Please check your connection.'
+          }
+        }
+      });
     }
+
+    // Handle 401 errors (unauthorized)
+    if (error.response.status === 401) {
+      removeToken();
+      // Only redirect to login for auth errors on protected routes
+      if (!publicRoutes.some(route => error.config.url.includes(route))) {
+        window.location.href = '/login';
+      }
+    }
+
     return Promise.reject(error);
   }
 );
@@ -47,7 +70,9 @@ export const auth = {
   login: (credentials) => api.post('/auth/login', credentials),
   refreshToken: () => api.post('/auth/refresh-token'),
   getVapidKey: () => api.get('/auth/vapid-public-key'),
-  validateToken: () => api.get('/auth/validate-token')
+  validateToken: () => api.get('/auth/validate-token'),
+  getProfile: () => api.get('/auth/profile'),
+  logout: () => api.post('/auth/logout')
 };
 
 // Admin endpoints
@@ -90,7 +115,15 @@ export const subadminTasks = {
   updateComplaintStatus: (complaintId, status) => api.put(`/complaints/${complaintId}/status`, { status }),
   completeTask: (taskId) => api.put(`/subadmin/tasks/${taskId}/complete`),
   getTaskById: (taskId) => api.get(`/subadmin/tasks/${taskId}`),
-  getTaskForComplaint: (complaintId) => api.get(`/subadmin/tasks/complaint/${complaintId}`)
+  getTaskForComplaint: (complaintId) => api.get(`/subadmin/tasks/complaint/${complaintId}`),
+  updateComplaint: async (complaintId, data) => {
+    try {
+      const response = await api.put(`/complaints/${complaintId}`, data);
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
 };
 
 // Notification endpoints

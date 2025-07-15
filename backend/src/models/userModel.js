@@ -36,7 +36,6 @@ const User = sequelize.define('User', {
   password_hash: {
     type: DataTypes.STRING(255),
     allowNull: false,
-    
   },
   dept_id: {
     type: DataTypes.INTEGER,
@@ -62,6 +61,8 @@ const User = sequelize.define('User', {
 }, {
   tableName: 'users',
   timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at',
   hooks: {
     beforeSave: async (user) => {
       if (user.changed('password_hash')) {

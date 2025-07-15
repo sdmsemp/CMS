@@ -241,7 +241,7 @@ const getComplaints = async (req, res) => {
 const updateComplaint = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, response } = req.body;
     const userRole = req.user.role_id;
     const userDept = req.user.dept_id;
 
@@ -252,8 +252,8 @@ const updateComplaint = async (req, res) => {
       });
     }
 
-    // Validate status
-    if (!['Pending', 'InProgress', 'Complete', 'Rejected'].includes(status)) {
+    // Validate status if provided
+    if (status && !['Pending', 'InProgress', 'Complete', 'Rejected'].includes(status)) {
       return res.status(400).json({
         success: false,
         error: 'Invalid status value. Must be one of: Pending, InProgress, Complete, Rejected'
@@ -277,13 +277,34 @@ const updateComplaint = async (req, res) => {
       });
     }
 
-    await complaint.update({ status });
+    // If complaint is already complete, don't allow response updates
+    if (complaint.status === 'Complete' && response) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot update response for completed complaints'
+      });
+    }
+
+    // Validate response length if provided
+    if (response && (response.length < 10 || response.length > 200)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Response must be between 10 and 200 characters'
+      });
+    }
+
+    // Update the complaint
+    const updateData = {};
+    if (status) updateData.status = status;
+    if (response !== undefined) updateData.response = response;
+
+    await complaint.update(updateData);
 
     // Log activity
     await createActivityLog({
-      user_id: req.user.emp_id, // Fixed: using emp_id instead of id
+      user_id: req.user.emp_id,
       activity_type: 'UPDATE',
-      description: `Updated complaint ${id} status to: ${status}`,
+      description: `Updated complaint ${id} ${status ? `status to: ${status}` : ''}${response ? ' with response' : ''}`,
       module: 'Complaint'
     });
 

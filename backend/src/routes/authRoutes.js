@@ -261,4 +261,32 @@ router.delete('/unsubscribe', authenticateJWT, authController.unsubscribeFromPus
  */
 router.get('/vapid-public-key', authController.getVapidPublicKey);
 
+/**
+ * @swagger
+ * /api/auth/profile:
+ *   get:
+ *     summary: Get user profile
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ */
+router.get('/profile', authenticateJWT, authController.getProfile);
+
 module.exports = router; 

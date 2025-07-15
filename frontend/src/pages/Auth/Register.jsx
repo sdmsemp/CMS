@@ -318,7 +318,7 @@ const Register = () => {
                   {loading ? 'Creating Account...' : 'Create Account'}
                 </Button>
               </Stack>
-            </form>
+      </form>
 
             <Box mt={1} textAlign="center">
               <Typography variant="body2" color="text.secondary">

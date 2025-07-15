@@ -62,14 +62,11 @@ const AppContent = () => {
             {/* User Routes */}
             <Route path="/user/dashboard" element={
               <PrivateRoute allowedRoles={["user"]}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ComplaintList complaints={[]} />
-                  <ComplaintForm onSubmit={() => {}} />
-                </div>
+                <ComplaintList showCreateButton={true} />
               </PrivateRoute>
             } />
             
-            <Route path="/user/complaints" element={
+            <Route path="/user/complaints/create" element={
               <PrivateRoute allowedRoles={["user"]}>
                 <div className="container mx-auto p-4">
                   <ComplaintForm onSubmit={() => {}} />

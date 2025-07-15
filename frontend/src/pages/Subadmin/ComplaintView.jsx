@@ -18,7 +18,8 @@ import {
   Avatar,
   InputAdornment,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Divider
 } from '@mui/material';
 import {
   Assignment,
@@ -26,7 +27,8 @@ import {
   Schedule,
   Comment,
   Search,
-  CheckCircle
+  CheckCircle,
+  FilterList
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { subadminTasks } from '../../services/api';
@@ -125,7 +127,7 @@ const ComplaintView = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="xl">
+      <Container maxWidth="xl" sx={{ py: 4 }}>
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
           <CircularProgress />
         </Box>
@@ -134,26 +136,37 @@ const ComplaintView = () => {
   }
 
   return (
-    <Container maxWidth="xl">
-      <Box py={3}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h4">Department Complaints</Typography>
-          <Stack direction="row" spacing={2}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      {/* Header Section */}
+      <Paper elevation={0} sx={{ p: 3, mb: 4, bgcolor: 'background.default', borderRadius: 2 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: 'text.primary' }}>
+            Department Complaints
+          </Typography>
+          
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ minWidth: { sm: '400px' } }}>
             <TextField
               placeholder="Search complaints..."
               size="small"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              fullWidth
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
                     <Search />
                   </InputAdornment>
-                )
+                ),
               }}
+              sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
             />
-            <FormControl sx={{ minWidth: 150 }} size="small">
-              <InputLabel>Status</InputLabel>
+            <FormControl size="small" sx={{ minWidth: 150, bgcolor: 'background.paper', borderRadius: 1 }}>
+              <InputLabel>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <FilterList fontSize="small" />
+                  Status
+                </Box>
+              </InputLabel>
               <Select
                 value={filter}
                 label="Status"
@@ -168,121 +181,160 @@ const ComplaintView = () => {
             </FormControl>
           </Stack>
         </Box>
+      </Paper>
 
-        {error && (
-          <Alert 
-            severity="error" 
-            onClose={() => setError(null)}
-            action={
-              <Button color="inherit" size="small" onClick={fetchComplaints}>
-                Retry
-              </Button>
-            }
-            sx={{ mb: 3 }}
-          >
-            {error}
-          </Alert>
-        )}
+      {error && (
+        <Alert 
+          severity="error" 
+          onClose={() => setError(null)}
+          action={
+            <Button color="inherit" size="small" onClick={fetchComplaints}>
+              Retry
+            </Button>
+          }
+          sx={{ mb: 4 }}
+        >
+          {error}
+        </Alert>
+      )}
 
-        {filteredComplaints.length === 0 ? (
-          <Paper sx={{ p: 3, textAlign: 'center' }}>
-            <Typography color="text.secondary">
-              No complaints found
-            </Typography>
-          </Paper>
-        ) : (
-          <Grid container spacing={3}>
-            {filteredComplaints.map((complaint) => (
-              <Grid item xs={12} key={complaint.complaint_id}>
-                <Card>
-                  <CardContent>
-                    <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-                      <Box display="flex" alignItems="center" gap={2}>
-                        <Avatar sx={{ bgcolor: 'primary.main' }}>
-                          <Assignment />
-                        </Avatar>
-                        <Box>
-                          <Typography variant="h6">{complaint.title}</Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {complaint.User.name} • Complaint #{complaint.complaint_id}
-                          </Typography>
-                        </Box>
+      {filteredComplaints.length === 0 ? (
+        <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+          <Typography color="text.secondary">
+            No complaints found
+          </Typography>
+        </Paper>
+      ) : (
+        <Grid container spacing={3}>
+          {filteredComplaints.map((complaint) => (
+            <Grid item xs={12} md={6} lg={4} key={complaint.complaint_id}>
+              <Card sx={{ 
+                height: '100%', 
+                display: 'flex', 
+                flexDirection: 'column',
+                borderRadius: 2,
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: 4
+                }
+              }}>
+                <CardContent sx={{ 
+                  flex: 1, 
+                  p: 3,
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}>
+                  {/* Header */}
+                  <Box display="flex" alignItems="flex-start" justifyContent="space-between" mb={2}>
+                    <Box display="flex" gap={2}>
+                      <Avatar sx={{ bgcolor: 'primary.main' }}>
+                        <Assignment />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="h6" sx={{ mb: 0.5, fontWeight: 600 }}>
+                          {complaint.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {complaint.User.name} • #{complaint.complaint_id}
+                        </Typography>
                       </Box>
-                      <Chip
-                        label={formatStatus(complaint.status)}
-                        color={getStatusColor(complaint.status)}
-                        size="small"
-                      />
                     </Box>
+                    <Chip
+                      label={formatStatus(complaint.status)}
+                      color={getStatusColor(complaint.status)}
+                      size="small"
+                      sx={{ ml: 1 }}
+                    />
+                  </Box>
 
-                    <Typography color="text.secondary" paragraph>
-                      {complaint.description}
-                    </Typography>
+                  <Divider sx={{ my: 2 }} />
 
-                    {/* Task Response Section */}
-                    {complaint.SubadminTasks && complaint.SubadminTasks[0] && (
-                      <Box mb={2} p={2} bgcolor="grey.50" borderRadius={1}>
-                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  {/* Description */}
+                  <Typography color="text.secondary" sx={{ mb: 2 }}>
+                    {complaint.description}
+                  </Typography>
+
+                  {/* Metadata */}
+                  <Box sx={{ mb: 2 }}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Chip
+                        icon={<PriorityHigh fontSize="small" />}
+                        label={`${complaint.severity.charAt(0).toUpperCase() + complaint.severity.slice(1)} Priority`}
+                        size="small"
+                        color={getSeverityColor(complaint.severity)}
+                        variant="outlined"
+                      />
+                      <Typography variant="caption" color="text.secondary" sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 0.5 
+                      }}>
+                        <Schedule fontSize="small" />
+                        {new Date(complaint.created_at).toLocaleString()}
+                      </Typography>
+                    </Stack>
+                  </Box>
+
+                  {/* Response Section */}
+                  <Box sx={{ 
+                    mt: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2
+                  }}>
+                    {complaint.SubadminTasks && complaint.SubadminTasks[0] ? (
+                      <Paper variant="outlined" sx={{ 
+                        p: 2, 
+                        bgcolor: 'grey.50', 
+                        borderRadius: 1,
+                        border: '1px solid',
+                        borderColor: 'divider'
+                      }}>
+                        <Typography variant="subtitle2" color="text.primary" gutterBottom>
                           Your Response:
                         </Typography>
-                        <Typography>
+                        <Typography variant="body2">
                           {complaint.SubadminTasks[0].description}
                         </Typography>
                         <Typography variant="caption" color="text.secondary" display="block" mt={1}>
                           Responded on: {new Date(complaint.SubadminTasks[0].created_at).toLocaleString()}
                         </Typography>
+                      </Paper>
+                    ) : (
+                      <Box sx={{ mt: 2 }}>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          fullWidth
+                          onClick={() => navigate('/subadmin/task/create', { 
+                            state: { complaint } 
+                          })}
+                          disabled={complaint.status === 'Complete'}
+                        >
+                          Respond
+                        </Button>
                       </Box>
                     )}
 
-                    <Box display="flex" alignItems="center" gap={3} mb={2}>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <PriorityHigh fontSize="small" color={getSeverityColor(complaint.severity)} />
-                        <Typography variant="body2" color="text.secondary">
-                          {complaint.severity.charAt(0).toUpperCase() + complaint.severity.slice(1)} Priority
-                        </Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Schedule fontSize="small" color="action" />
-                        <Typography variant="body2" color="text.secondary">
-                          {new Date(complaint.created_at).toLocaleString()}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    <Box display="flex" justifyContent="flex-end" gap={2}>
-                      {complaint.status.toLowerCase() !== 'complete' && 
-                       complaint.status.toLowerCase() !== 'completed' && 
-                       complaint.status.toLowerCase() !== 'rejected' && (
-                        <>
-                          {complaint.SubadminTasks && complaint.SubadminTasks[0] ? (
-                            <Button
-                              variant="outlined"
-                              startIcon={<CheckCircle />}
-                              onClick={() => handleCompleteComplaint(complaint)}
-                            >
-                              Mark Complete
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="contained"
-                              startIcon={<Comment />}
-                              onClick={() => navigate('/subadmin/task/create', { 
-                                state: { complaint } 
-                              })}
-                            >
-                              Respond
-                            </Button>
-                          )}
-                        </>
-                      )}
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        )}
-      </Box>
+                    {complaint.status === 'InProgress' && (
+                      <Button
+                        variant="outlined"
+                        color="success"
+                        fullWidth
+                        onClick={() => handleCompleteComplaint(complaint)}
+                        startIcon={<CheckCircle />}
+                      >
+                        Mark Complete
+                      </Button>
+                    )}
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
     </Container>
   );
 };

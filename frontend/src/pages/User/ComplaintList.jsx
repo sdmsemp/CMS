@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Container,
   Paper,
@@ -19,7 +20,9 @@ import {
   DialogActions,
   Stack,
   Divider,
-  Alert
+  Alert,
+  Fab,
+  CircularProgress
 } from '@mui/material';
 import {
   Timeline,
@@ -33,12 +36,14 @@ import {
 import {
   Search,
   Close,
-  Info
+  Info,
+  Add as AddIcon
 } from '@mui/icons-material';
 import api from '../../services/api';
 import ComplaintCard from '../../components/ComplaintCard';
 
-const ComplaintList = () => {
+const ComplaintList = ({ showCreateButton = false }) => {
+  const navigate = useNavigate();
   const [complaints, setComplaints] = useState([]);
   const [filter, setFilter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,12 +77,16 @@ const ComplaintList = () => {
     complaint.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleCreateComplaint = () => {
+    navigate('/user/complaints/create');
+  };
+
   return (
     <Container maxWidth="xl">
       <Box py={3}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h4">My Complaints</Typography>
-          <Stack direction="row" spacing={2}>
+          <Stack direction="row" spacing={2} alignItems="center">
             <TextField
               placeholder="Search complaints..."
               size="small"
@@ -105,6 +114,16 @@ const ComplaintList = () => {
                 <MenuItem value="Rejected">Rejected</MenuItem>
               </Select>
             </FormControl>
+            {showCreateButton && (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={handleCreateComplaint}
+              >
+                Create Complaint
+              </Button>
+            )}
           </Stack>
         </Box>
 
@@ -114,20 +133,61 @@ const ComplaintList = () => {
           </Alert>
         )}
 
-        <Grid container spacing={3}>
-          {filteredComplaints.map((complaint) => (
-            <Grid item xs={12} key={complaint.complaint_id}>
-              <ComplaintCard 
-                complaint={complaint}
-                onViewDetails={() => {
-                          setSelectedComplaint(complaint);
-                          setOpenDialog(true);
-                        }}
-              />
-            </Grid>
-          ))}
-        </Grid>
+        {loading ? (
+          <Box display="flex" justifyContent="center" py={4}>
+            <CircularProgress />
+          </Box>
+        ) : filteredComplaints.length === 0 ? (
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <Typography color="text.secondary" gutterBottom>
+              No complaints found
+            </Typography>
+            {showCreateButton && (
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={handleCreateComplaint}
+                sx={{ mt: 2 }}
+              >
+                Create Your First Complaint
+              </Button>
+            )}
+          </Paper>
+        ) : (
+          <Grid container spacing={3}>
+            {filteredComplaints.map((complaint) => (
+              <Grid item xs={12} key={complaint.complaint_id}>
+                <ComplaintCard 
+                  complaint={complaint}
+                  onViewDetails={() => {
+                    setSelectedComplaint(complaint);
+                    setOpenDialog(true);
+                  }}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        )}
 
+        {/* Floating Action Button for mobile */}
+        {showCreateButton && (
+          <Fab
+            color="primary"
+            aria-label="add"
+            onClick={handleCreateComplaint}
+            sx={{
+              position: 'fixed',
+              bottom: 16,
+              right: 16,
+              display: { xs: 'flex', md: 'none' }
+            }}
+          >
+            <AddIcon />
+          </Fab>
+        )}
+
+        {/* Existing Dialog code */}
         <Dialog
           open={openDialog}
           onClose={() => setOpenDialog(false)}
@@ -178,10 +238,10 @@ const ComplaintList = () => {
                 <Box mb={3}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Created At
-                </Typography>
+                  </Typography>
                   <Typography>
                     {new Date(selectedComplaint.created_at).toLocaleString()}
-                        </Typography>
+                  </Typography>
                 </Box>
               </DialogContent>
               <DialogActions>

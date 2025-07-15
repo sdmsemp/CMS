@@ -17,27 +17,56 @@ import {
   Send,
   ArrowBack
 } from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { subadminTasks } from '../../services/api';
 
 const TaskForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const complaint = location.state?.complaint;
-
+  const [searchParams] = useSearchParams();
+  
+  const [complaint, setComplaint] = useState(location.state?.complaint || null);
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!complaint) {
-      setError('No complaint selected');
-    }
-  }, [complaint]);
+    const fetchComplaint = async () => {
+      // If we don't have complaint in state, try to fetch it using the URL parameter
+      if (!complaint) {
+        const complaintId = searchParams.get('complaintId');
+        if (complaintId) {
+          try {
+            setLoading(true);
+            const response = await subadminTasks.getComplaint(complaintId);
+            if (response.data.success) {
+              setComplaint(response.data.data);
+            } else {
+              throw new Error(response.data.error || 'Failed to fetch complaint');
+            }
+          } catch (err) {
+            console.error('Error fetching complaint:', err);
+            setError('Failed to fetch complaint details. Please try again.');
+          } finally {
+            setLoading(false);
+          }
+        } else {
+          setError('No complaint selected');
+        }
+      }
+    };
+
+    fetchComplaint();
+  }, [complaint, searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (!complaint) {
+      setError('No complaint selected');
+      return;
+    }
+
     if (description.length < 10 || description.length > 100) {
       setError('Description must be between 10 and 100 characters');
       return;
@@ -66,6 +95,16 @@ const TaskForm = () => {
     }
   };
 
+  if (loading && !complaint) {
+    return (
+      <Container maxWidth="md">
+        <Box py={3} display="flex" justifyContent="center">
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
+
   if (!complaint) {
     return (
       <Container maxWidth="md">
@@ -78,7 +117,7 @@ const TaskForm = () => {
               </Button>
             }
           >
-            No complaint selected. Please select a complaint first.
+            {error || 'No complaint selected. Please select a complaint first.'}
           </Alert>
         </Box>
       </Container>

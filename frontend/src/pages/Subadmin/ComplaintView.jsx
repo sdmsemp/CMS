@@ -205,25 +205,36 @@ const ComplaintView = () => {
           </Typography>
         </Paper>
       ) : (
-        <Grid container spacing={3} justifyContent="center">
+        <Grid container spacing={4} justifyContent="center" sx={{
+          rowGap: { xs: 3, sm: 4 },
+          columnGap: { xs: 2, sm: 4 },
+        }}>
           {filteredComplaints.map((complaint) => (
             <Grid item xs={12} sm={6} md={4} key={complaint.complaint_id} sx={{ display: 'flex', justifyContent: 'center' }}>
               <Card sx={{ 
                 height: '100%', 
+                minHeight: 320,
+                maxWidth: 380,
+                minWidth: 340,
+                width: '100%',
                 display: 'flex', 
                 flexDirection: 'column',
-                borderRadius: 2,
-                transition: 'transform 0.2s, box-shadow 0.2s',
+                borderRadius: 3,
+                boxShadow: 2,
+                transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+                bgcolor: 'background.paper',
                 '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: 4
+                  transform: 'translateY(-6px) scale(1.03)',
+                  boxShadow: 6,
+                  borderColor: 'primary.main',
                 }
               }}>
                 <CardContent sx={{ 
                   flex: 1, 
                   p: 3,
                   display: 'flex',
-                  flexDirection: 'column'
+                  flexDirection: 'column',
+                  minHeight: 220
                 }}>
                   {/* Header */}
                   <Box display="flex" alignItems="flex-start" justifyContent="space-between" mb={2}>
@@ -251,7 +262,17 @@ const ComplaintView = () => {
                   <Divider sx={{ my: 2 }} />
 
                   {/* Description (truncated) */}
-                  <Typography color="text.secondary" sx={{ mb: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', minHeight: 48 }}>
+                  <Typography color="text.secondary" sx={{
+                    mb: 2,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    minHeight: 48,
+                    maxHeight: 48,
+                    wordBreak: 'break-word',
+                  }}>
                     {complaint.description}
                   </Typography>
 
@@ -275,19 +296,6 @@ const ComplaintView = () => {
                       </Typography>
                     </Stack>
                   </Box>
-
-                  {/* View Details Button */}
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    sx={{ alignSelf: 'flex-end', mb: 1 }}
-                    onClick={() => {
-                      // Open a dialog or navigate to a details page
-                      navigate(`/subadmin/complaints/${complaint.complaint_id}`);
-                    }}
-                  >
-                    View Details
-                  </Button>
 
                   {/* Response Section */}
                   <Box sx={{ 

@@ -611,14 +611,14 @@ const Dashboard = () => {
               )}
 
         {/* Analytics Tab */}
-              {tabValue === 1 && (
-          <Grid container spacing={3}>
+        {tabValue === 1 && (
+          <Grid container spacing={3} justifyContent="center">
             <Grid item xs={12}>
-              <Paper sx={{ p: 3 }}>
+              <Paper sx={{ p: 3, maxWidth: 1000, mx: 'auto', width: '100%' }}>
                 <Typography variant="h6" gutterBottom>
                   User Activity Trends
                 </Typography>
-                <Box height={400}>
+                <Box height={400} width="100%" maxWidth={900} mx="auto">
                   {dashboardLoading ? (
                     <Box display="flex" justifyContent="center" p={4}>
                       <CircularProgress />
@@ -630,15 +630,15 @@ const Dashboard = () => {
                   ) : (
                     <Line
                       data={dashboardCharts?.userActivity}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: {
-                          position: 'top',
-                        },
-                        title: {
-                          display: true,
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: {
+                            position: 'top',
+                          },
+                          title: {
+                            display: true,
                             text: 'Daily Active Users'
                           }
                         }

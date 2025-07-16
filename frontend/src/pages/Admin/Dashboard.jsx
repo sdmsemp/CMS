@@ -390,7 +390,7 @@ const Dashboard = () => {
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
           <Typography variant="h4">
             Admin Dashboard
-          </Typography>
+        </Typography>
           <Stack direction="row" spacing={2}>
             <Button
               variant="contained"
@@ -428,7 +428,7 @@ const Dashboard = () => {
         {tabValue === 0 && (
           <>
             {/* Stats Grid */}
-            <Grid container spacing={3}>
+        <Grid container spacing={3}>
               {dashboardLoading ? (
                 <Grid item xs={12}>
                   <Box display="flex" justifyContent="center" p={4}>
@@ -443,7 +443,7 @@ const Dashboard = () => {
                 </Grid>
               ) : dashboardStats?.stats ? (
                 dashboardStats.stats.map((stat, index) => (
-                  <Grid item xs={12} sm={6} md={3} key={index}>
+            <Grid item xs={12} sm={6} md={3} key={index}>
                     <Card sx={{ 
                       height: '100%',
                       transition: 'transform 0.2s',
@@ -452,37 +452,37 @@ const Dashboard = () => {
                         boxShadow: 3
                       }
                     }}>
-                      <CardContent>
-                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                <CardContent>
+                  <Box display="flex" alignItems="center" justifyContent="space-between">
                           <Avatar sx={{ bgcolor: stat.color, width: 56, height: 56 }}>
                             {stat.icon === 'Domain' && <Domain />}
                             {stat.icon === 'SupervisorAccount' && <SupervisorAccount />}
                             {stat.icon === 'People' && <People />}
                             {stat.icon === 'Notifications' && <Notifications />}
-                          </Avatar>
-                          <IconButton size="small">
-                            <MoreVert />
-                          </IconButton>
-                        </Box>
-                        
+                    </Avatar>
+                    <IconButton size="small">
+                      <MoreVert />
+                    </IconButton>
+                  </Box>
+                  
                         <Typography variant="h4" sx={{ my: 2, fontWeight: 'bold' }}>
-                          {stat.value}
-                        </Typography>
-                        
-                        <Box display="flex" alignItems="center" justifyContent="space-between">
-                          <Typography variant="body2" color="text.secondary">
-                            {stat.title}
-                          </Typography>
-                          <Typography
-                            variant="body2"
+                    {stat.value}
+                  </Typography>
+                  
+                  <Box display="flex" alignItems="center" justifyContent="space-between">
+                    <Typography variant="body2" color="text.secondary">
+                      {stat.title}
+                    </Typography>
+                    <Typography
+                      variant="body2"
                             color={stat.trend.includes('+') ? 'success.main' : 'info.main'}
-                          >
-                            {stat.trend}
-                          </Typography>
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+                    >
+                      {stat.trend}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
                 ))
               ) : (
                 <Grid item xs={12}>
@@ -492,19 +492,19 @@ const Dashboard = () => {
                 </Grid>
               )}
 
-              {/* Charts */}
+          {/* Charts */}
               <Grid item xs={12} md={8}>
                 <Paper sx={{ p: 3, height: '100%' }}>
-                  <Tabs
-                    value={tabValue}
-                    onChange={(e, newValue) => setTabValue(newValue)}
-                    sx={{ mb: 3 }}
-                  >
+              <Tabs
+                value={tabValue}
+                onChange={(e, newValue) => setTabValue(newValue)}
+                sx={{ mb: 3 }}
+              >
                     <Tab label="Department Performance" />
                     <Tab label="User Activity" />
-                  </Tabs>
+              </Tabs>
 
-                  <Box height={300}>
+                <Box height={300}>
                     {dashboardLoading ? (
                       <Box display="flex" justifyContent="center" p={4}>
                         <CircularProgress />
@@ -516,20 +516,20 @@ const Dashboard = () => {
                     ) : (
                       <Bar
                         data={dashboardCharts?.departmentPerformance}
-                        options={{
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                            legend: {
-                              position: 'top',
-                            },
-                            title: {
-                              display: true,
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'top',
+                        },
+                        title: {
+                          display: true,
                               text: 'Department Resolution Rates'
-                            }
-                          }
-                        }}
-                      />
+                        }
+                      }
+                    }}
+                  />
                     )}
                   </Box>
                 </Paper>
@@ -602,16 +602,16 @@ const Dashboard = () => {
                   ) : (
                     <Box display="flex" justifyContent="center" p={4}>
                       <Typography variant="body2" color="text.secondary">No recent activities</Typography>
-                    </Box>
+                </Box>
                   )}
                 </Paper>
               </Grid>
             </Grid>
           </>
-        )}
+              )}
 
         {/* Analytics Tab */}
-        {tabValue === 1 && (
+              {tabValue === 1 && (
           <Grid container spacing={3}>
             <Grid item xs={12}>
               <Paper sx={{ p: 3 }}>
@@ -630,15 +630,15 @@ const Dashboard = () => {
                   ) : (
                     <Line
                       data={dashboardCharts?.userActivity}
-                      options={{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                          legend: {
-                            position: 'top',
-                          },
-                          title: {
-                            display: true,
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'top',
+                        },
+                        title: {
+                          display: true,
                             text: 'Daily Active Users'
                           }
                         }
@@ -708,7 +708,7 @@ const Dashboard = () => {
                 <CircularProgress />
               </Box>
             ) : (
-              <Grid container spacing={3}>
+              <Grid container spacing={3} justifyContent="center">
                 {filteredComplaints.length === 0 ? (
                   <Grid item xs={12}>
                     <Paper sx={{ p: 4, textAlign: 'center' }}>
@@ -725,14 +725,21 @@ const Dashboard = () => {
                   </Grid>
                 ) : (
                   filteredComplaints.map((complaint) => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={complaint.complaint_id}>
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={complaint.complaint_id} sx={{ display: 'flex', justifyContent: 'center' }}>
                       <Card 
                         sx={{ 
                           height: '100%',
-                          transition: 'all 0.3s ease',
+                          minWidth: 340,
+                          maxWidth: 380,
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+                          boxShadow: 2,
+                          borderRadius: 3,
                           '&:hover': {
-                            transform: 'translateY(-4px)',
-                            boxShadow: 4
+                            transform: 'translateY(-6px) scale(1.03)',
+                            boxShadow: 6,
+                            borderColor: 'primary.main',
                           }
                         }}
                       >
@@ -992,8 +999,8 @@ const Dashboard = () => {
                 )}
               </>
             )}
-          </Box>
-        )}
+                </Box>
+              )}
 
         {/* Users Tab */}
         {tabValue === 4 && (
@@ -1068,8 +1075,8 @@ const Dashboard = () => {
                           : 'No users available in the system'
                         }
                       </Typography>
-                    </Paper>
-                  </Grid>
+            </Paper>
+          </Grid>
                 ) : (
                   filteredUsers.map((user, index) => (
                     <Grid item xs={12} sm={6} md={4} key={user.emp_id || index}>
@@ -1117,7 +1124,7 @@ const Dashboard = () => {
                               <Person fontSize="small" color="action" />
                               <Typography variant="body2" color="text.secondary">
                                 ID: {user.emp_id || 'N/A'}
-                              </Typography>
+              </Typography>
                             </Box>
                           </Box>
                         </CardContent>
@@ -1134,13 +1141,13 @@ const Dashboard = () => {
                     </Grid>
                   ))
                 )}
-              </Grid>
+          </Grid>
             )}
             
             {/* User Statistics */}
             {!usersLoading && !usersError && users.length > 0 && (
               <Paper sx={{ p: 3, mt: 3 }}>
-                <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom>
                   User Statistics
                 </Typography>
                 <Grid container spacing={2}>
@@ -1162,7 +1169,7 @@ const Dashboard = () => {
                   <Grid item xs={12} sm={3}>
                     <Typography variant="body2" color="text.secondary">
                       <strong>Regular Users:</strong> {users.filter(u => u.role_id === 3).length}
-                    </Typography>
+              </Typography>
                   </Grid>
                 </Grid>
               </Paper>
@@ -1217,7 +1224,7 @@ const Dashboard = () => {
                   </Typography>
                   <Typography variant="body1">
                     {selectedComplaint.user?.name || 'Unknown'}
-                  </Typography>
+                </Typography>
                 </Grid>
                 
                 <Grid item xs={12} sm={6}>
@@ -1241,48 +1248,23 @@ const Dashboard = () => {
                       <Typography variant="body2" color="success.dark" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CheckCircle fontSize="small" />
                         Status updated successfully!
-                      </Typography>
+                </Typography>
                     </Box>
                   )}
                   
                   <Box display="flex" gap={2} flexWrap="wrap">
-                    <Button
-                      variant={selectedComplaint.status === 'Pending' ? 'contained' : 'outlined'}
-                      color="warning"
-                      size="small"
-                      disabled={statusChangeLoading || selectedComplaint.status === 'Pending'}
-                      onClick={() => updateComplaintStatus(selectedComplaint.complaint_id, 'Pending')}
-                    >
-                      {statusChangeLoading ? <CircularProgress size={16} /> : 'Set Pending'}
-                    </Button>
-                    <Button
-                      variant={selectedComplaint.status === 'InProgress' ? 'contained' : 'outlined'}
-                      color="info"
-                      size="small"
-                      disabled={statusChangeLoading || selectedComplaint.status === 'InProgress'}
-                      onClick={() => updateComplaintStatus(selectedComplaint.complaint_id, 'InProgress')}
-                    >
-                      {statusChangeLoading ? <CircularProgress size={16} /> : 'Set In Progress'}
-                    </Button>
-                    <Button
-                      variant={selectedComplaint.status === 'Complete' ? 'contained' : 'outlined'}
-                      color="success"
-                      size="small"
-                      disabled={statusChangeLoading || selectedComplaint.status === 'Complete'}
-                      onClick={() => updateComplaintStatus(selectedComplaint.complaint_id, 'Complete')}
-                    >
-                      {statusChangeLoading ? <CircularProgress size={16} /> : 'Set Complete'}
-                    </Button>
-                    <Button
-                      variant={selectedComplaint.status === 'Rejected' ? 'contained' : 'outlined'}
-                      color="error"
-                      size="small"
-                      disabled={statusChangeLoading || selectedComplaint.status === 'Rejected'}
-                      onClick={() => updateComplaintStatus(selectedComplaint.complaint_id, 'Rejected')}
-                    >
-                      {statusChangeLoading ? <CircularProgress size={16} /> : 'Set Rejected'}
-                    </Button>
-                  </Box>
+                    {selectedComplaint.status !== 'Rejected' && (
+                      <Button
+                        variant={selectedComplaint.status === 'Rejected' ? 'contained' : 'outlined'}
+                        color="error"
+                        size="small"
+                        disabled={statusChangeLoading}
+                        onClick={() => updateComplaintStatus(selectedComplaint.complaint_id, 'Rejected')}
+                      >
+                        {statusChangeLoading ? <CircularProgress size={16} /> : 'Set Rejected'}
+                      </Button>
+                    )}
+              </Box>
                 </Grid>
 
                 {selectedComplaint.response && (
@@ -1294,10 +1276,10 @@ const Dashboard = () => {
                       <Typography variant="body1">
                         {selectedComplaint.response}
                       </Typography>
-                    </Paper>
-                  </Grid>
+            </Paper>
+          </Grid>
                 )}
-              </Grid>
+        </Grid>
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setDialogOpen(false)}>

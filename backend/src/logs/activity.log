@@ -18,3 +18,47 @@
 [2025-07-16T01:11:37.366Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
 [2025-07-16T01:12:14.049Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
 [2025-07-16T01:21:27.734Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T01:33:52.005Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T01:38:01.388Z] [INFO] [Complaint] UPDATE: Updated complaint 1 status to: Rejected | User ID: 100
+[2025-07-16T01:38:36.579Z] [INFO] [Auth] LOGIN: User logged in successfully: keshav (keshav@starkdigital.in) | User ID: 382 | Details: {"email":"keshav@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T01:39:31.565Z] [INFO] [Complaint] CREATE: Complaint created: "hello admin " | User ID: 382 | Details: {"complaint_id":6,"title":"hello admin ","severity":"high","department_id":1,"status":"Pending"}
+[2025-07-16T01:39:55.611Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T01:40:06.633Z] [INFO] [Complaint] UPDATE: Updated complaint 6 status to: InProgress | User ID: 100
+[2025-07-16T01:42:15.630Z] [INFO] [Auth] LOGIN: User logged in successfully: subadmin (subadmin@starkdigital.in) | User ID: 292 | Details: {"email":"subadmin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T01:42:29.296Z] [INFO] [Complaint] UPDATE: Updated complaint 5 status to: Complete | User ID: 292
+[2025-07-16T01:43:08.698Z] [INFO] [SubadminTask] CREATE: Added task for complaint 6 | User ID: 292
+[2025-07-16T01:43:41.419Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T01:44:04.859Z] [INFO] [Complaint] UPDATE: Updated complaint 3 status to: InProgress | User ID: 100
+[2025-07-16T01:44:10.540Z] [INFO] [Complaint] UPDATE: Updated complaint 3 status to: Rejected | User ID: 100
+[2025-07-16T01:46:18.987Z] [INFO] [Complaint] UPDATE: Updated complaint 4 status to: Rejected | User ID: 100
+[2025-07-16T01:46:29.486Z] [INFO] [Complaint] UPDATE: Updated complaint 6 status to: Rejected | User ID: 100
+[2025-07-16T01:46:39.267Z] [INFO] [Complaint] UPDATE: Updated complaint 5 status to: Rejected | User ID: 100
+[2025-07-16T01:47:32.979Z] [INFO] [Auth] LOGIN: User logged in successfully: subadmin (subadmin@starkdigital.in) | User ID: 292 | Details: {"email":"subadmin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T01:48:07.519Z] [INFO] [Auth] LOGIN: User logged in successfully: keshav (keshav@starkdigital.in) | User ID: 382 | Details: {"email":"keshav@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T01:48:44.759Z] [INFO] [Complaint] CREATE: Complaint created: "Good morning" | User ID: 382 | Details: {"complaint_id":7,"title":"Good morning","severity":"low","department_id":2,"status":"Pending"}
+[2025-07-16T01:49:35.011Z] [INFO] [Complaint] CREATE: Complaint created: "Error fetching " | User ID: 382 | Details: {"complaint_id":8,"title":"Error fetching ","severity":"low","department_id":2,"status":"Pending"}
+[2025-07-16T01:51:22.507Z] [INFO] [Complaint] CREATE: Complaint created: "Error fetching " | User ID: 382 | Details: {"complaint_id":9,"title":"Error fetching ","severity":"low","department_id":1,"status":"Pending"}
+[2025-07-16T01:52:06.379Z] [INFO] [Complaint] CREATE: Complaint created: "Error fetching " | User ID: 382 | Details: {"complaint_id":10,"title":"Error fetching ","severity":"high","department_id":1,"status":"Pending"}
+[2025-07-16T01:52:36.858Z] [INFO] [Complaint] CREATE: Complaint created: "Error fetching " | User ID: 382 | Details: {"complaint_id":11,"title":"Error fetching ","severity":"high","department_id":2,"status":"Pending"}
+[2025-07-16T01:53:08.547Z] [INFO] [Complaint] CREATE: Complaint created: "Error " | User ID: 382 | Details: {"complaint_id":12,"title":"Error ","severity":"high","department_id":1,"status":"Pending"}
+[2025-07-16T01:53:48.016Z] [INFO] [Complaint] CREATE: Complaint created: "Error fetching activity " | User ID: 382 | Details: {"complaint_id":13,"title":"Error fetching activity ","severity":"high","department_id":2,"status":"Pending"}
+[2025-07-16T01:57:36.130Z] [INFO] [Auth] LOGIN: User logged in successfully: subadmin (subadmin@starkdigital.in) | User ID: 292 | Details: {"email":"subadmin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T01:58:20.865Z] [INFO] [SubadminTask] CREATE: Added task for complaint 12 | User ID: 292
+[2025-07-16T01:59:45.079Z] [INFO] [Complaint] UPDATE: Updated complaint 12 status to: Complete | User ID: 292
+[2025-07-16T02:00:02.604Z] [INFO] [Auth] LOGIN: User logged in successfully: keshav (keshav@starkdigital.in) | User ID: 382 | Details: {"email":"keshav@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T02:02:53.298Z] [INFO] [Auth] LOGIN: User logged in successfully: subadmin (subadmin@starkdigital.in) | User ID: 292 | Details: {"email":"subadmin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T02:04:01.984Z] [INFO] [Auth] LOGIN: User logged in successfully: keshav (keshav@starkdigital.in) | User ID: 382 | Details: {"email":"keshav@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T02:05:25.073Z] [INFO] [Auth] LOGIN: User logged in successfully: subadmin (subadmin@starkdigital.in) | User ID: 292 | Details: {"email":"subadmin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T02:05:39.948Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T02:06:05.036Z] [INFO] [Complaint] UPDATE: Updated complaint 9 status to: Rejected | User ID: 100
+[2025-07-16T02:06:21.418Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T02:06:41.236Z] [INFO] [Auth] LOGIN: User logged in successfully: subadmin (subadmin@starkdigital.in) | User ID: 292 | Details: {"email":"subadmin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T02:06:58.588Z] [INFO] [SubadminTask] CREATE: Added task for complaint 9 | User ID: 292
+[2025-07-16T02:07:19.462Z] [INFO] [Complaint] UPDATE: Updated complaint 9 status to: Complete | User ID: 292
+[2025-07-16T02:08:41.785Z] [INFO] [Auth] LOGIN: User logged in successfully: keshav (keshav@starkdigital.in) | User ID: 382 | Details: {"email":"keshav@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T02:17:16.437Z] [INFO] [Auth] LOGIN: User logged in successfully: subadmin (subadmin@starkdigital.in) | User ID: 292 | Details: {"email":"subadmin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T02:17:29.039Z] [INFO] [Auth] LOGIN: User logged in successfully: keshav (keshav@starkdigital.in) | User ID: 382 | Details: {"email":"keshav@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T02:19:02.035Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T02:19:52.193Z] [INFO] [Auth] LOGIN: User logged in successfully: keshav (keshav@starkdigital.in) | User ID: 382 | Details: {"email":"keshav@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T02:23:47.509Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T02:25:13.516Z] [INFO] [Auth] LOGIN: User logged in successfully: keshav (keshav@starkdigital.in) | User ID: 382 | Details: {"email":"keshav@starkdigital.in","role":"Unknown","department":"Unknown"}

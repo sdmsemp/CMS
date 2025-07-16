@@ -205,9 +205,9 @@ const ComplaintView = () => {
           </Typography>
         </Paper>
       ) : (
-        <Grid container spacing={3}>
+        <Grid container spacing={3} justifyContent="center">
           {filteredComplaints.map((complaint) => (
-            <Grid item xs={12} md={6} lg={4} key={complaint.complaint_id}>
+            <Grid item xs={12} sm={6} md={4} key={complaint.complaint_id} sx={{ display: 'flex', justifyContent: 'center' }}>
               <Card sx={{ 
                 height: '100%', 
                 display: 'flex', 
@@ -250,8 +250,8 @@ const ComplaintView = () => {
 
                   <Divider sx={{ my: 2 }} />
 
-                  {/* Description */}
-                  <Typography color="text.secondary" sx={{ mb: 2 }}>
+                  {/* Description (truncated) */}
+                  <Typography color="text.secondary" sx={{ mb: 2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', minHeight: 48 }}>
                     {complaint.description}
                   </Typography>
 
@@ -275,6 +275,19 @@ const ComplaintView = () => {
                       </Typography>
                     </Stack>
                   </Box>
+
+                  {/* View Details Button */}
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    sx={{ alignSelf: 'flex-end', mb: 1 }}
+                    onClick={() => {
+                      // Open a dialog or navigate to a details page
+                      navigate(`/subadmin/complaints/${complaint.complaint_id}`);
+                    }}
+                  >
+                    View Details
+                  </Button>
 
                   {/* Response Section */}
                   <Box sx={{ 

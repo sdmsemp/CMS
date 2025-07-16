@@ -155,11 +155,12 @@ const ComplaintList = ({ showCreateButton = false }) => {
             )}
           </Paper>
         ) : (
-          <Grid container spacing={3}>
+          <Grid container spacing={3} justifyContent="center">
             {filteredComplaints.map((complaint) => (
-              <Grid item xs={12} key={complaint.complaint_id}>
+              <Grid item xs={12} sm={6} md={4} key={complaint.complaint_id} sx={{ display: 'flex', justifyContent: 'center' }}>
                 <ComplaintCard 
                   complaint={complaint}
+                  truncateDescription={true}
                   onViewDetails={() => {
                     setSelectedComplaint(complaint);
                     setOpenDialog(true);

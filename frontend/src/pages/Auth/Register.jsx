@@ -160,7 +160,7 @@ const Register = () => {
     <Box
       sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #1976d2 0%, #64b5f6 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -200,13 +200,13 @@ const Register = () => {
                   Join our team and start managing complaints efficiently
                 </Typography>
                 <Stack direction="row" spacing={2} alignItems="center">
-                  <CheckCircle sx={{ color: '#4CAF50' }} />
+                  <CheckCircle sx={{ color: '#1976d2' }} />
                   <Typography variant="body1">
                     Secure registration process
                   </Typography>
                 </Stack>
                 <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
-                  <CheckCircle sx={{ color: '#4CAF50' }} />
+                  <CheckCircle sx={{ color: '#1976d2' }} />
                   <Typography variant="body1">
                     Instant access to the platform
                   </Typography>
@@ -221,12 +221,16 @@ const Register = () => {
               <Paper
                 elevation={24}
                 sx={{
-                  p: 4,
+                  p: { xs: 2, sm: 4 },
                   borderRadius: 3,
-                  background: 'rgba(255, 255, 255, 0.95)',
+                  background: 'rgba(255, 255, 255, 0.97)',
                   backdropFilter: 'blur(10px)',
                   border: '1px solid rgba(255, 255, 255, 0.2)',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+                  maxWidth: 480,
+                  width: { xs: '100%', sm: 440, md: 480 },
+                  mx: 'auto',
+                  minHeight: 540
                 }}
               >
                 <Stack spacing={3} alignItems="center">

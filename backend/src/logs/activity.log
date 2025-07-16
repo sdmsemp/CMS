@@ -130,3 +130,8 @@
 [2025-07-16T06:40:08.658Z] [INFO] [Complaint] UPDATE: Updated complaint 3 status to: Complete | User ID: 101
 [2025-07-16T06:41:13.760Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
 [2025-07-16T07:25:35.867Z] [INFO] [Complaint] UPDATE: Updated complaint 3 status to: Rejected | User ID: 100
+[2025-07-16T08:58:18.483Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T09:17:05.002Z] [INFO] [Complaint] UPDATE: Updated complaint 4 status to: Rejected | User ID: 100
+[2025-07-16T09:20:28.648Z] [INFO] [Auth] LOGIN: User logged in successfully: emp2 (emp2@starkdigital.in) | User ID: 108 | Details: {"email":"emp2@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T09:21:26.755Z] [INFO] [Auth] LOGIN: User logged in successfully: subadminIT (subadminIT@starkdigital.in) | User ID: 101 | Details: {"email":"subadminIT@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T09:25:00.851Z] [INFO] [SubadminTask] CREATE: Added task for complaint 6 | User ID: 101

@@ -964,6 +964,20 @@ const Dashboard = () => {
                             </Typography>
                           </Box>
 
+                          {complaint.status_by && complaint.StatusByUser && (
+                            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                              <Typography variant="body2" color="text.secondary">
+                                <strong>Status Changed By:</strong> {complaint.StatusByUser.name || 'Unknown'}
+                              </Typography>
+                              <Chip
+                                label={getRoleDisplayName(complaint.StatusByUser.role_id)}
+                                color={getRoleColor(complaint.StatusByUser.role_id)}
+                                size="small"
+                                variant="outlined"
+                              />
+                            </Box>
+                          )}
+
                           {complaint.response && (
                             <Box sx={{ 
                               p: 1.5, 

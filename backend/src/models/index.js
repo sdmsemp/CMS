@@ -19,6 +19,10 @@ Department.hasMany(User, { foreignKey: 'dept_id' });
 User.hasMany(Complaint, { foreignKey: 'emp_id' });
 Complaint.belongsTo(User, { foreignKey: 'emp_id' });
 
+// User - Complaint Status Association (who changed the status)
+User.hasMany(Complaint, { foreignKey: 'status_by', as: 'StatusByUser' });
+Complaint.belongsTo(User, { foreignKey: 'status_by', as: 'StatusByUser' });
+
 // Department - Complaint Association
 Department.hasMany(Complaint, { foreignKey: 'dept_id' });
 Complaint.belongsTo(Department, { foreignKey: 'dept_id' });

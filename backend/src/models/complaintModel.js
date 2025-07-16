@@ -50,6 +50,15 @@ const Complaint = sequelize.define('Complaint', {
     allowNull: false,
     defaultValue: 'Pending'
   },
+  status_by: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'users',
+      key: 'emp_id'
+    },
+    comment: 'Employee ID of who last changed the status'
+  },
   created_at: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
@@ -66,6 +75,9 @@ const Complaint = sequelize.define('Complaint', {
     },
     {
       fields: ['status']
+    },
+    {
+      fields: ['status_by']
     }
   ]
 });

@@ -40,6 +40,7 @@ erDiagram
         string response "10-200 characters, Optional"
         enum severity "low, medium, high"
         enum status "Pending, InProgress, Complete, Rejected"
+        int status_by FK "References users.emp_id (Who changed status)"
         datetime created_at
     }
 
@@ -88,6 +89,7 @@ erDiagram
     ROLES ||--o{ USERS : "has"
     DEPARTMENTS ||--o{ USERS : "has"
     USERS ||--o{ COMPLAINTS : "creates"
+    USERS ||--o{ COMPLAINTS : "changes_status"
     DEPARTMENTS ||--o{ COMPLAINTS : "belongs_to"
     USERS ||--o{ SUBADMIN_TASKS : "assigned_to"
     COMPLAINTS ||--o{ SUBADMIN_TASKS : "has"

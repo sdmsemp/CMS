@@ -220,6 +220,12 @@ const getComplaints = async (req, res) => {
         {
           model: User,
           attributes: ['emp_id', 'name', 'email']
+        },
+        {
+          model: User,
+          as: 'StatusByUser',
+          foreignKey: 'status_by',
+          attributes: ['emp_id', 'name', 'email']
         }
       ],
       order: [
@@ -303,7 +309,10 @@ const updateComplaint = async (req, res) => {
 
     // Update the complaint
     const updateData = {};
-    if (status) updateData.status = status;
+    if (status) {
+      updateData.status = status;
+      updateData.status_by = req.user.emp_id; // Track who changed the status
+    }
     if (response !== undefined) updateData.response = response;
 
     await complaint.update(updateData);

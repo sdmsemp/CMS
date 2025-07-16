@@ -100,3 +100,32 @@
 [2025-07-16T04:39:03.478Z] [INFO] [Auth] LOGIN_FAILED: Failed login attempt for user: aadmin | User ID: 457 | Details: {"email":"aadmin@starkdigital.in","reason":"Invalid password"}
 [2025-07-16T04:39:10.139Z] [INFO] [Auth] LOGIN: User logged in successfully: kundan (om@starkdigital.in) | User ID: 485 | Details: {"email":"om@starkdigital.in","role":"Unknown","department":"Unknown"}
 [2025-07-16T04:46:00.733Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T04:55:52.308Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T05:20:05.241Z] [INFO] [Admin] CREATE: Created new subadmin: subadminIT for department 1 | User ID: 100
+[2025-07-16T05:21:52.990Z] [INFO] [Admin] CREATE: Created new subadmin: subadminMarketing for department 5 | User ID: 100
+[2025-07-16T05:22:39.281Z] [INFO] [Admin] CREATE: Created new subadmin: subadminFinance for department 3 | User ID: 100
+[2025-07-16T05:24:54.354Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T05:27:16.429Z] [INFO] [Auth] LOGIN: User logged in successfully: emp2 (emp2@starkdigital.in) | User ID: 108 | Details: {"email":"emp2@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T05:27:47.663Z] [INFO] [Complaint] CREATE: Complaint created: "Hello sir" | User ID: 108 | Details: {"complaint_id":1,"title":"Hello sir","severity":"low","department_id":1,"status":"Pending"}
+[2025-07-16T05:28:36.668Z] [INFO] [Complaint] CREATE: Complaint created: "Hello sir 2" | User ID: 108 | Details: {"complaint_id":2,"title":"Hello sir 2","severity":"medium","department_id":1,"status":"Pending"}
+[2025-07-16T05:29:13.681Z] [INFO] [Complaint] CREATE: Complaint created: "Computer Issue" | User ID: 108 | Details: {"complaint_id":3,"title":"Computer Issue","severity":"low","department_id":1,"status":"Pending"}
+[2025-07-16T05:31:06.001Z] [INFO] [Complaint] CREATE: Complaint created: "Highly Urgent" | User ID: 108 | Details: {"complaint_id":4,"title":"Highly Urgent","severity":"high","department_id":1,"status":"Pending"}
+[2025-07-16T05:31:53.859Z] [INFO] [Complaint] CREATE: Complaint created: "For HR" | User ID: 108 | Details: {"complaint_id":5,"title":"For HR","severity":"low","department_id":2,"status":"Pending"}
+[2025-07-16T05:32:14.835Z] [INFO] [Auth] LOGIN_FAILED: Failed login attempt for email: subadmin@starkdigital.in | User ID: unknown | Details: {"email":"subadmin@starkdigital.in","reason":"User not found"}
+[2025-07-16T05:32:24.892Z] [INFO] [Auth] LOGIN_FAILED: Failed login attempt for email: subadmintwo@starkdigital.in | User ID: unknown | Details: {"email":"subadmintwo@starkdigital.in","reason":"User not found"}
+[2025-07-16T05:32:42.660Z] [INFO] [Auth] LOGIN: User logged in successfully: subadminIT (subadminIT@starkdigital.in) | User ID: 101 | Details: {"email":"subadminIT@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T05:33:29.901Z] [INFO] [SubadminTask] CREATE: Added task for complaint 4 | User ID: 101
+[2025-07-16T05:33:47.221Z] [INFO] [SubadminTask] CREATE: Added task for complaint 2 | User ID: 101
+[2025-07-16T05:33:53.165Z] [INFO] [Complaint] UPDATE: Updated complaint 2 status to: Complete | User ID: 101
+[2025-07-16T05:34:17.046Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T05:34:31.049Z] [INFO] [Complaint] UPDATE: Updated complaint 2 status to: Rejected | User ID: 100
+[2025-07-16T05:34:36.070Z] [INFO] [Complaint] UPDATE: Updated complaint 2 status to: Rejected | User ID: 100
+[2025-07-16T05:52:37.531Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T06:31:28.395Z] [INFO] [Auth] LOGIN: User logged in successfully: emp2 (emp2@starkdigital.in) | User ID: 108 | Details: {"email":"emp2@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T06:32:30.352Z] [INFO] [Complaint] CREATE: Complaint created: "This is my " | User ID: 108 | Details: {"complaint_id":6,"title":"This is my ","severity":"high","department_id":1,"status":"Pending"}
+[2025-07-16T06:33:21.578Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T06:35:27.583Z] [INFO] [Admin] CREATE: Created new subadmin: kundan for department 4 | User ID: 100
+[2025-07-16T06:39:05.663Z] [INFO] [Auth] LOGIN: User logged in successfully: subadminIT (subadminIT@starkdigital.in) | User ID: 101 | Details: {"email":"subadminIt@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T06:39:45.318Z] [INFO] [SubadminTask] CREATE: Added task for complaint 3 | User ID: 101
+[2025-07-16T06:40:08.658Z] [INFO] [Complaint] UPDATE: Updated complaint 3 status to: Complete | User ID: 101
+[2025-07-16T06:41:13.760Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}

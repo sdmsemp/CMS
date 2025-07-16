@@ -103,6 +103,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [statusChangeLoading, setStatusChangeLoading] = useState(false);
@@ -181,6 +182,9 @@ const Dashboard = () => {
       if (statusFilter !== 'all') {
         params.status = statusFilter;
       }
+      if (departmentFilter !== 'all') {
+        params.dept_id = departmentFilter;
+      }
       const response = await api.complaints.getAll(params);
       setComplaintsList(response.data.data || []);
     } catch (error) {
@@ -193,8 +197,11 @@ const Dashboard = () => {
   useEffect(() => {
     if (tabValue === 2) { // Complaints tab
       fetchComplaints();
+      if (departments.length === 0) {
+        fetchDepartments();
+      }
     }
-  }, [tabValue, statusFilter]);
+  }, [tabValue, statusFilter, departmentFilter]);
 
   // Fetch activity logs
   const fetchActivityLogs = async () => {
@@ -313,12 +320,17 @@ const Dashboard = () => {
     setFilteredUsers(filtered);
   }, [users, userSearchTerm, userRoleFilter]);
 
-  // Filter complaints based on search term
-  const filteredComplaints = complaintsList.filter(complaint =>
-    complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    complaint.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    complaint.User?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter complaints based on search term and department
+  const filteredComplaints = complaintsList.filter(complaint => {
+    const matchesSearch = complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         complaint.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         complaint.User?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesDepartment = departmentFilter === 'all' || 
+                             complaint.dept_id === parseInt(departmentFilter);
+    
+    return matchesSearch && matchesDepartment;
+  });
 
   // Filter activity logs based on search term
   const filteredActivityLogs = activityLogs.filter(log =>
@@ -710,7 +722,7 @@ const Dashboard = () => {
             {/* Search and Filter Bar */}
             <Paper sx={{ p: 3, mb: 3 }}>
               <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
                     placeholder="Search complaints by title, description, or user name..."
@@ -725,7 +737,7 @@ const Dashboard = () => {
                     }}
                   />
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid item xs={12} md={2}>
                   <FormControl fullWidth>
                     <InputLabel>Status Filter</InputLabel>
                     <Select
@@ -738,6 +750,23 @@ const Dashboard = () => {
                       <MenuItem value="InProgress">In Progress</MenuItem>
                       <MenuItem value="Complete">Complete</MenuItem>
                       <MenuItem value="Rejected">Rejected</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <FormControl fullWidth>
+                    <InputLabel>Department Filter</InputLabel>
+                    <Select
+                      value={departmentFilter}
+                      label="Department Filter"
+                      onChange={(e) => setDepartmentFilter(e.target.value)}
+                    >
+                      <MenuItem value="all">All Departments</MenuItem>
+                      {departments.map((dept) => (
+                        <MenuItem key={dept.dept_id} value={dept.dept_id}>
+                          {dept.name}
+                        </MenuItem>
+                      ))}
                     </Select>
                   </FormControl>
                 </Grid>
@@ -755,6 +784,50 @@ const Dashboard = () => {
               </Grid>
             </Paper>
 
+            {/* Complaints Summary */}
+            {!loading && filteredComplaints.length > 0 && (
+              <Paper sx={{ p: 2, mb: 3, bgcolor: 'grey.50' }}>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Typography variant="h6" color="text.secondary">
+                    Complaints Summary:
+                    {departmentFilter !== 'all' && (
+                      <span style={{ color: 'primary.main', fontWeight: 'normal' }}>
+                        {' '}({departments.find(d => d.dept_id === parseInt(departmentFilter))?.name || 'Unknown Department'})
+                      </span>
+                    )}
+                  </Typography>
+                  <Chip 
+                    label={`${filteredComplaints.filter(c => c.status === 'Pending').length} Pending`}
+                    color="error"
+                    size="small"
+                    sx={{
+                      animation: filteredComplaints.filter(c => c.status === 'Pending').length > 0 ? 'blink 2s infinite' : 'none',
+                      '@keyframes blink': {
+                        '0%': { opacity: 1 },
+                        '50%': { opacity: 0.5 },
+                        '100%': { opacity: 1 }
+                      }
+                    }}
+                  />
+                  <Chip 
+                    label={`${filteredComplaints.filter(c => c.status === 'InProgress').length} In Progress`}
+                    color="info"
+                    size="small"
+                  />
+                  <Chip 
+                    label={`${filteredComplaints.filter(c => c.status === 'Complete').length} Completed`}
+                    color="success"
+                    size="small"
+                  />
+                  <Chip 
+                    label={`${filteredComplaints.filter(c => c.status === 'Rejected').length} Rejected`}
+                    color="warning"
+                    size="small"
+                  />
+                </Box>
+              </Paper>
+            )}
+
             {/* Complaints Grid */}
             {loading ? (
               <Box display="flex" justifyContent="center" p={4}>
@@ -769,7 +842,7 @@ const Dashboard = () => {
                         No complaints found
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {searchTerm || statusFilter !== 'all' 
+                        {searchTerm || statusFilter !== 'all' || departmentFilter !== 'all'
                           ? 'Try adjusting your search or filter criteria'
                           : 'No complaints have been submitted yet'
                         }
@@ -789,10 +862,27 @@ const Dashboard = () => {
                           transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
                           boxShadow: 2,
                           borderRadius: 3,
+                          border: complaint.status === 'Pending' ? '2px solid' : 'none',
+                          borderColor: complaint.status === 'Pending' ? 'error.main' : 'transparent',
+                          animation: complaint.status === 'Pending' ? 'blink 2s infinite' : 'none',
+                          '@keyframes blink': {
+                            '0%': {
+                              borderColor: 'error.main',
+                              boxShadow: '0 0 5px rgba(211, 47, 47, 0.3)'
+                            },
+                            '50%': {
+                              borderColor: 'error.light',
+                              boxShadow: '0 0 15px rgba(211, 47, 47, 0.6)'
+                            },
+                            '100%': {
+                              borderColor: 'error.main',
+                              boxShadow: '0 0 5px rgba(211, 47, 47, 0.3)'
+                            }
+                          },
                           '&:hover': {
                             transform: 'translateY(-6px) scale(1.03)',
-                            boxShadow: 6,
-                            borderColor: 'primary.main',
+                            boxShadow: complaint.status === 'Pending' ? 8 : 6,
+                            borderColor: complaint.status === 'Pending' ? 'error.main' : 'primary.main',
                           }
                         }}
                       >
@@ -808,6 +898,34 @@ const Dashboard = () => {
                               label={complaint.status}
                               color={getStatusColor(complaint.status)}
                               size="small"
+                              sx={{
+                                position: 'relative',
+                                '&::before': complaint.status === 'Pending' ? {
+                                  content: '""',
+                                  position: 'absolute',
+                                  top: '-2px',
+                                  right: '-2px',
+                                  width: '8px',
+                                  height: '8px',
+                                  borderRadius: '50%',
+                                  backgroundColor: 'error.main',
+                                  animation: 'pulse 1.5s infinite',
+                                  '@keyframes pulse': {
+                                    '0%': {
+                                      transform: 'scale(1)',
+                                      opacity: 1
+                                    },
+                                    '50%': {
+                                      transform: 'scale(1.5)',
+                                      opacity: 0.7
+                                    },
+                                    '100%': {
+                                      transform: 'scale(1)',
+                                      opacity: 1
+                                    }
+                                  }
+                                } : {}
+                              }}
                             />
                           </Box>
 

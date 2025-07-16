@@ -88,6 +88,8 @@ export const admin = {
   getLogStats: () => api.get('/admin/log-file/stats'),
   getDashboardStats: (params) => api.get('/admin/dashboard/stats', { params }),
   getDashboardCharts: () => api.get('/admin/dashboard/charts'),
+  getAllSubadminTasks: (params) => api.get('/admin/subadmin-tasks', { params }),
+  getSubadminTasksStats: (params) => api.get('/admin/subadmin-tasks/stats', { params }),
 };
 
 // Role endpoints

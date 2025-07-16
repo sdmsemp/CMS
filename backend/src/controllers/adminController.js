@@ -1,4 +1,4 @@
-const { User, Department, Complaint, sequelize } = require('../models');
+const { User, Department, Complaint, SubadminTask, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const { createActivityLog } = require('../utils/activityLogger');
 
@@ -296,6 +296,171 @@ exports.getMostActiveUsers = async (req, res) => {
     });
   } catch (error) {
     console.error('Get most active users error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+}; 
+
+// Get all subadmin tasks with department filtering
+exports.getAllSubadminTasks = async (req, res) => {
+  try {
+    const { dept_id, status, page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+
+    // Build where clause for filtering
+    const whereClause = {};
+    if (dept_id) {
+      whereClause.dept_id = dept_id;
+    }
+
+    // Get subadmin tasks with related data
+    const tasks = await SubadminTask.findAndCountAll({
+      include: [
+        {
+          model: User,
+          as: 'User',
+          attributes: ['emp_id', 'name', 'email', 'dept_id'],
+          where: { role_id: 2 }, // Only subadmins
+          include: [
+            {
+              model: Department,
+              attributes: ['dept_id', 'name']
+            }
+          ]
+        },
+        {
+          model: Complaint,
+          attributes: ['complaint_id', 'title', 'description', 'severity', 'status', 'created_at'],
+          where: whereClause,
+          include: [
+            {
+              model: User,
+              attributes: ['emp_id', 'name', 'email']
+            }
+          ]
+        }
+      ],
+      order: [
+        [{ model: Complaint, as: 'Complaint' }, 'created_at', 'DESC']
+      ],
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(tasks.count / limit);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        tasks: tasks.rows,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages,
+          totalItems: tasks.count,
+          itemsPerPage: parseInt(limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get all subadmin tasks error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+};
+
+// Get subadmin tasks statistics for dashboard
+exports.getSubadminTasksStats = async (req, res) => {
+  try {
+    const { dept_id } = req.query;
+    
+    // Build where clause for filtering
+    const whereClause = {};
+    if (dept_id) {
+      whereClause.dept_id = dept_id;
+    }
+
+    // Get total tasks count
+    const totalTasks = await SubadminTask.count({
+      include: [
+        {
+          model: User,
+          as: 'User',
+          where: { role_id: 2 },
+          include: [
+            {
+              model: Department,
+              where: whereClause
+            }
+          ]
+        }
+      ]
+    });
+
+    // Get tasks by department
+    const tasksByDepartment = await SubadminTask.findAll({
+      include: [
+        {
+          model: User,
+          as: 'User',
+          where: { role_id: 2 },
+          include: [
+            {
+              model: Department,
+              attributes: ['dept_id', 'name']
+            }
+          ]
+        }
+      ],
+      attributes: [
+        [sequelize.fn('COUNT', sequelize.col('SubadminTask.task_id')), 'taskCount']
+      ],
+      group: ['User.Department.dept_id', 'User.Department.name'],
+      raw: true
+    });
+
+    // Get recent tasks (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const recentTasks = await SubadminTask.count({
+      include: [
+        {
+          model: User,
+          as: 'User',
+          where: { role_id: 2 },
+          include: [
+            {
+              model: Department,
+              where: whereClause
+            }
+          ]
+        },
+        {
+          model: Complaint,
+          where: {
+            created_at: {
+              [Op.gte]: sevenDaysAgo
+            }
+          }
+        }
+      ]
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalTasks,
+        tasksByDepartment,
+        recentTasks
+      }
+    });
+  } catch (error) {
+    console.error('Get subadmin tasks stats error:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'

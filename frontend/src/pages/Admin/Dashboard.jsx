@@ -136,6 +136,15 @@ const Dashboard = () => {
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [userRoleFilter, setUserRoleFilter] = useState('all');
 
+  // Add subadmin tasks state
+  const [subadminTasks, setSubadminTasks] = useState([]);
+  const [subadminTasksLoading, setSubadminTasksLoading] = useState(false);
+  const [subadminTasksError, setSubadminTasksError] = useState(null);
+  const [subadminTasksPage, setSubadminTasksPage] = useState(1);
+  const [subadminTasksTotalPages, setSubadminTasksTotalPages] = useState(0);
+  const [subadminTasksDeptFilter, setSubadminTasksDeptFilter] = useState('all');
+  const [departments, setDepartments] = useState([]);
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       setDashboardLoading(true);
@@ -240,6 +249,49 @@ const Dashboard = () => {
       fetchUsers();
     }
   }, [tabValue]);
+
+  // Add fetch subadmin tasks function
+  const fetchSubadminTasks = async () => {
+    setSubadminTasksLoading(true);
+    setSubadminTasksError(null);
+    try {
+      const params = {
+        page: subadminTasksPage,
+        limit: 20
+      };
+      if (subadminTasksDeptFilter !== 'all') {
+        params.dept_id = subadminTasksDeptFilter;
+      }
+      const response = await api.admin.getAllSubadminTasks(params);
+      setSubadminTasks(response.data.data.tasks || []);
+      setSubadminTasksTotalPages(response.data.data.pagination.totalPages || 0);
+    } catch (error) {
+      console.error('Error fetching subadmin tasks:', error);
+      setSubadminTasksError('Failed to fetch subadmin tasks');
+    } finally {
+      setSubadminTasksLoading(false);
+    }
+  };
+
+  // Add fetch departments function
+  const fetchDepartments = async () => {
+    try {
+      const response = await api.departments.getAll();
+      setDepartments(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+    }
+  };
+
+  // Add useEffect for subadmin tasks tab
+  useEffect(() => {
+    if (tabValue === 5) { // Subadmin Tasks tab
+      fetchSubadminTasks();
+      if (departments.length === 0) {
+        fetchDepartments();
+      }
+    }
+  }, [tabValue, subadminTasksPage, subadminTasksDeptFilter]);
 
   // Add user filtering logic
   useEffect(() => {
@@ -421,6 +473,7 @@ const Dashboard = () => {
             <Tab label="Complaints" />
             <Tab label="Activity Logs" />
             <Tab label="Users" />
+            <Tab label="Subadmin Tasks" />
           </Tabs>
         </Paper>
 
@@ -1001,6 +1054,225 @@ const Dashboard = () => {
             )}
                 </Box>
               )}
+
+        {/* Subadmin Tasks Tab */}
+        {tabValue === 5 && (
+          <Box>
+            {/* Search and Filter Bar */}
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} md={6}>
+                  <Typography variant="h6" gutterBottom>
+                    Subadmin Tasks Management
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Monitor and track tasks assigned to subadmins across departments
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <FormControl fullWidth>
+                    <InputLabel>Department Filter</InputLabel>
+                    <Select
+                      value={subadminTasksDeptFilter}
+                      label="Department Filter"
+                      onChange={(e) => setSubadminTasksDeptFilter(e.target.value)}
+                    >
+                      <MenuItem value="all">All Departments</MenuItem>
+                      {departments.map((dept) => (
+                        <MenuItem key={dept.dept_id} value={dept.dept_id}>
+                          {dept.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<FilterList />}
+                    onClick={fetchSubadminTasks}
+                    disabled={subadminTasksLoading}
+                  >
+                    {subadminTasksLoading ? <CircularProgress size={20} /> : 'Refresh'}
+                  </Button>
+                </Grid>
+              </Grid>
+            </Paper>
+
+            {/* Subadmin Tasks Display */}
+            {subadminTasksLoading ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <CircularProgress />
+              </Box>
+            ) : subadminTasksError ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <Typography variant="h6" color="error">{subadminTasksError}</Typography>
+              </Box>
+            ) : (
+              <>
+                <Grid container spacing={3}>
+                  {subadminTasks.length === 0 ? (
+                    <Grid item xs={12}>
+                      <Paper sx={{ p: 4, textAlign: 'center' }}>
+                        <Typography variant="h6" color="text.secondary">
+                          No subadmin tasks found
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {subadminTasksDeptFilter !== 'all' 
+                            ? 'Try adjusting your filter criteria'
+                            : 'No tasks have been assigned to subadmins yet'
+                          }
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  ) : (
+                    subadminTasks.map((task, index) => (
+                      <Grid item xs={12} md={6} key={task.task_id || index}>
+                        <Card sx={{ 
+                          height: '100%',
+                          transition: 'transform 0.2s',
+                          '&:hover': {
+                            transform: 'translateY(-4px)',
+                            boxShadow: 3
+                          }
+                        }}>
+                          <CardContent>
+                            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                              <Typography variant="h6" color="primary">
+                                Task #{task.task_id}
+                              </Typography>
+                              <Chip
+                                label={task.Complaint?.status || 'Unknown'}
+                                color={getStatusColor(task.Complaint?.status)}
+                                size="small"
+                              />
+                            </Box>
+                            
+                            <Box mb={2}>
+                              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Complaint Details:
+                              </Typography>
+                              <Typography variant="body1" gutterBottom>
+                                {task.Complaint?.title || 'No title'}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {task.Complaint?.description || 'No description'}
+                              </Typography>
+                            </Box>
+
+                            <Box mb={2}>
+                              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Task Description:
+                              </Typography>
+                              <Typography variant="body2">
+                                {task.description || 'No task description'}
+                              </Typography>
+                            </Box>
+
+                            <Box display="flex" flexDirection="column" gap={1}>
+                              <Box display="flex" alignItems="center" gap={1}>
+                                <SupervisorAccount fontSize="small" color="action" />
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Subadmin:</strong> {task.User?.name || 'Unknown'}
+                                </Typography>
+                              </Box>
+                              
+                              <Box display="flex" alignItems="center" gap={1}>
+                                <Business fontSize="small" color="action" />
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Department:</strong> {task.User?.Department?.name || 'Unknown'}
+                                </Typography>
+                              </Box>
+                              
+                              <Box display="flex" alignItems="center" gap={1}>
+                                <Person fontSize="small" color="action" />
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Complaint By:</strong> {task.Complaint?.User?.name || 'Unknown'}
+                                </Typography>
+                              </Box>
+
+                              <Box display="flex" alignItems="center" gap={1}>
+                                {getSeverityIcon(task.Complaint?.severity)}
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Severity:</strong> {task.Complaint?.severity || 'Unknown'}
+                                </Typography>
+                              </Box>
+
+                              <Box display="flex" alignItems="center" gap={1}>
+                                <CalendarToday fontSize="small" color="action" />
+                                <Typography variant="body2" color="text.secondary">
+                                  <strong>Created:</strong> {formatDate(task.Complaint?.created_at)}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </CardContent>
+                          <CardActions>
+                            <Button 
+                              size="small" 
+                              startIcon={<Visibility />}
+                              onClick={() => {
+                                setSelectedComplaint(task.Complaint);
+                                setDialogOpen(true);
+                              }}
+                            >
+                              View Complaint
+                            </Button>
+                          </CardActions>
+                        </Card>
+                      </Grid>
+                    ))
+                  )}
+                </Grid>
+
+                {/* Pagination */}
+                {subadminTasksTotalPages > 1 && (
+                  <Box display="flex" justifyContent="center" mt={3}>
+                    <Pagination
+                      count={subadminTasksTotalPages}
+                      page={subadminTasksPage}
+                      onChange={(event, page) => setSubadminTasksPage(page)}
+                      color="primary"
+                      showFirstButton
+                      showLastButton
+                    />
+                  </Box>
+                )}
+              </>
+            )}
+            
+            {/* Subadmin Tasks Statistics */}
+            {!subadminTasksLoading && !subadminTasksError && subadminTasks.length > 0 && (
+              <Paper sx={{ p: 3, mt: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Tasks Statistics
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={3}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Total Tasks:</strong> {subadminTasks.length}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Pending:</strong> {subadminTasks.filter(t => t.Complaint?.status === 'Pending').length}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>In Progress:</strong> {subadminTasks.filter(t => t.Complaint?.status === 'InProgress').length}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Completed:</strong> {subadminTasks.filter(t => t.Complaint?.status === 'Complete').length}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Paper>
+            )}
+          </Box>
+        )}
 
         {/* Users Tab */}
         {tabValue === 4 && (

@@ -95,3 +95,8 @@
 [2025-07-16T03:15:13.059Z] [INFO] [Auth] LOGIN: User logged in successfully: Suyog ji (suyog@starkdigital.in) | User ID: 101 | Details: {"email":"suyog@starkdigital.in","role":"Unknown","department":"Unknown"}
 [2025-07-16T03:15:29.291Z] [INFO] [Auth] LOGIN: User logged in successfully: subadminIT (subadminIT@starkdigital.in) | User ID: 103 | Details: {"email":"subadminIT@starkdigital.in","role":"Unknown","department":"Unknown"}
 [2025-07-16T03:16:48.008Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T04:38:02.262Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T04:38:53.672Z] [INFO] [Auth] LOGIN_FAILED: Failed login attempt for user: aadmin | User ID: 457 | Details: {"email":"aadmin@starkdigital.in","reason":"Invalid password"}
+[2025-07-16T04:39:03.478Z] [INFO] [Auth] LOGIN_FAILED: Failed login attempt for user: aadmin | User ID: 457 | Details: {"email":"aadmin@starkdigital.in","reason":"Invalid password"}
+[2025-07-16T04:39:10.139Z] [INFO] [Auth] LOGIN: User logged in successfully: kundan (om@starkdigital.in) | User ID: 485 | Details: {"email":"om@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T04:46:00.733Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}

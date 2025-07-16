@@ -6,7 +6,7 @@ const authorize = require('../middleware/authorize');
 const ActivityLog = require('../models/activityLogModel');
 const { readLogFile, clearLogFile, getLogStats, createActivityLog } = require('../utils/activityLogger');
 const { Op } = require('sequelize');
-const { User, Department, Complaint, Role, sequelize } = require('../models');
+const { User, Department, Complaint, SubadminTask, Role, sequelize } = require('../models');
 const { validateSubadmin, validateDepartment } = require('../validation/adminValidation');
 
 // Middleware for superadmin-only routes
@@ -687,5 +687,129 @@ router.get('/dashboard/test', async (req, res) => {
     });
   }
 });
+
+/**
+ * @swagger
+ * /api/admin/subadmin-tasks:
+ *   get:
+ *     summary: Get all subadmin tasks with department filtering (Superadmin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: dept_id
+ *         schema:
+ *           type: integer
+ *         description: Filter tasks by department ID
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Filter tasks by status
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: Subadmin tasks retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     tasks:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/SubadminTask'
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         currentPage:
+ *                           type: integer
+ *                         totalPages:
+ *                           type: integer
+ *                         totalItems:
+ *                           type: integer
+ *                         itemsPerPage:
+ *                           type: integer
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - Not a superadmin
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get('/subadmin-tasks', adminAuth, adminController.getAllSubadminTasks);
+
+/**
+ * @swagger
+ * /api/admin/subadmin-tasks/stats:
+ *   get:
+ *     summary: Get subadmin tasks statistics (Superadmin only)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: dept_id
+ *         schema:
+ *           type: integer
+ *         description: Filter stats by department ID
+ *     responses:
+ *       200:
+ *         description: Subadmin tasks statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     totalTasks:
+ *                       type: integer
+ *                     tasksByDepartment:
+ *                       type: array
+ *                     recentTasks:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - Not a superadmin
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get('/subadmin-tasks/stats', adminAuth, adminController.getSubadminTasksStats);
 
 module.exports = router; 

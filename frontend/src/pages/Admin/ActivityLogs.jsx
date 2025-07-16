@@ -19,7 +19,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Alert
 } from '@mui/material';
 import {
   Search,
@@ -37,6 +38,7 @@ import { admin } from '../../services/api';
 
 const ActivityLogs = () => {
   const [filter, setFilter] = useState('all');
+  const [moduleFilter, setModuleFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLog, setSelectedLog] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
@@ -49,17 +51,24 @@ const ActivityLogs = () => {
     const fetchLogs = async () => {
       setLoading(true);
       try {
-        const res = await admin.getLogs();
-        setLogs(res.data.data || []);
+        const params = {};
+        if (moduleFilter !== 'all') {
+          params.module = moduleFilter;
+        }
+        console.log('Fetching logs with params:', params);
+        const res = await admin.getLogs(params);
+        console.log('API Response:', res.data);
+        setLogs(res.data.data?.logs || res.data.data || []);
         setError(null);
       } catch (err) {
+        console.error('Error fetching logs:', err);
         setError('Failed to fetch activity logs');
       } finally {
         setLoading(false);
       }
     };
     fetchLogs();
-  }, []);
+  }, [moduleFilter]);
 
   const columns = [
     {
@@ -72,7 +81,7 @@ const ActivityLogs = () => {
           <Box>
             <Typography>{row.user.name}</Typography>
             <Typography variant="body2" color="text.secondary">
-              {row.user.role}
+              {row.user.Role?.name || 'N/A'}
             </Typography>
           </Box>
         </Box>
@@ -82,6 +91,19 @@ const ActivityLogs = () => {
       field: 'action',
       headerName: 'Action',
       flex: 2
+    },
+    {
+      field: 'module',
+      headerName: 'Module',
+      flex: 1,
+      renderCell: (row) => (
+        <Chip
+          label={row.module || 'N/A'}
+          color="primary"
+          size="small"
+          variant="outlined"
+        />
+      )
     },
     {
       field: 'type',
@@ -150,7 +172,26 @@ const ActivityLogs = () => {
   };
 
   const handleRefresh = () => {
-    // Add refresh logic
+    const fetchLogs = async () => {
+      setLoading(true);
+      try {
+        const params = {};
+        if (moduleFilter !== 'all') {
+          params.module = moduleFilter;
+        }
+        console.log('Refreshing logs with params:', params);
+        const res = await admin.getLogs(params);
+        console.log('Refresh API Response:', res.data);
+        setLogs(res.data.data?.logs || res.data.data || []);
+        setError(null);
+      } catch (err) {
+        console.error('Error refreshing logs:', err);
+        setError('Failed to fetch activity logs');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLogs();
   };
 
   return (
@@ -165,6 +206,21 @@ const ActivityLogs = () => {
               onClick={handleExport}
             >
               Export
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={async () => {
+                try {
+                  const res = await admin.testLogs();
+                  console.log('Test logs response:', res.data);
+                  alert(`Test successful! Found ${res.data.data.totalLogs} logs`);
+                } catch (err) {
+                  console.error('Test logs error:', err);
+                  alert('Test failed: ' + err.message);
+                }
+              }}
+            >
+              Test Logs
             </Button>
             <Tooltip title="Refresh">
               <IconButton onClick={handleRefresh}>
@@ -204,6 +260,20 @@ const ActivityLogs = () => {
               </Select>
             </FormControl>
             <FormControl sx={{ minWidth: 150 }}>
+              <InputLabel>Module</InputLabel>
+              <Select
+                value={moduleFilter}
+                label="Module"
+                onChange={(e) => setModuleFilter(e.target.value)}
+              >
+                <MenuItem value="all">All Modules</MenuItem>
+                <MenuItem value="Admin">Admin</MenuItem>
+                <MenuItem value="Auth">Auth</MenuItem>
+                <MenuItem value="Complaint">Complaint</MenuItem>
+                <MenuItem value="SubadminTask">Subadmin Task</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl sx={{ minWidth: 150 }}>
               <InputLabel>Time Range</InputLabel>
               <Select
                 value={dateRange}
@@ -223,6 +293,26 @@ const ActivityLogs = () => {
             data={logs}
             title="Activity Logs"
           />
+          
+          {loading && (
+            <Box display="flex" justifyContent="center" py={4}>
+              <Typography>Loading activity logs...</Typography>
+            </Box>
+          )}
+          
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
+          
+          {!loading && !error && logs.length === 0 && (
+            <Box display="flex" justifyContent="center" py={4}>
+              <Typography color="text.secondary">
+                No activity logs found
+              </Typography>
+            </Box>
+          )}
         </Paper>
 
         <Dialog
@@ -243,12 +333,25 @@ const ActivityLogs = () => {
                     User
                   </Typography>
                   <Typography>{selectedLog.user.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {selectedLog.user.Role?.name || 'N/A'}
+                  </Typography>
                 </Box>
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary">
                     Action
                   </Typography>
                   <Typography>{selectedLog.action}</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary">
+                    Module
+                  </Typography>
+                  <Chip
+                    label={selectedLog.module || 'N/A'}
+                    color="primary"
+                    variant="outlined"
+                  />
                 </Box>
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary">

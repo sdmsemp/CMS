@@ -6,7 +6,7 @@ const authorize = require('../middleware/authorize');
 const ActivityLog = require('../models/activityLogModel');
 const { readLogFile, clearLogFile, getLogStats, createActivityLog } = require('../utils/activityLogger');
 const { Op } = require('sequelize');
-const { User, Department, Complaint, sequelize } = require('../models');
+const { User, Department, Complaint, Role, sequelize } = require('../models');
 const { validateSubadmin, validateDepartment } = require('../validation/adminValidation');
 
 // Middleware for superadmin-only routes
@@ -199,7 +199,7 @@ router.post('/department', adminAuth, validateDepartment, adminController.create
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Test response
+ *         description: Test logs response
  *       401:
  *         description: Unauthorized
  *       403:
@@ -207,11 +207,14 @@ router.post('/department', adminAuth, validateDepartment, adminController.create
  */
 router.get('/test-logs', adminAuth, async (req, res) => {
   try {
-    // Test basic ActivityLog query
-    const count = await ActivityLog.count();
+    console.log('Test logs endpoint called');
     
-    // Test User association
-    const testLog = await ActivityLog.findOne({
+    // Check if ActivityLog table exists and has data
+    const logCount = await ActivityLog.count();
+    console.log('Total activity logs in database:', logCount);
+    
+    // Get a sample log
+    const sampleLog = await ActivityLog.findOne({
       include: [{
         model: User,
         as: 'user',
@@ -219,20 +222,22 @@ router.get('/test-logs', adminAuth, async (req, res) => {
         attributes: ['name', 'email']
       }]
     });
-
+    
+    console.log('Sample log:', sampleLog);
+    
     res.status(200).json({
       success: true,
       data: {
-        totalLogs: count,
-        testLog: testLog,
-        message: 'Activity logs test successful'
+        totalLogs: logCount,
+        sampleLog: sampleLog
       }
     });
   } catch (error) {
     console.error('Test logs error:', error);
     res.status(500).json({
       success: false,
-      error: 'Test failed: ' + error.message
+      error: 'Test logs failed',
+      details: error.message
     });
   }
 });
@@ -270,12 +275,14 @@ router.get('/test-logs', adminAuth, async (req, res) => {
  */
 router.get('/logs', adminAuth, async (req, res) => {
   try {
+    console.log('Logs endpoint called with query:', req.query);
     const limit = parseInt(req.query.limit) || 50;
     const page = parseInt(req.query.page) || 1;
     const offset = (page - 1) * limit;
     const module = req.query.module;
 
     const whereClause = module ? { module } : {};
+    console.log('Where clause:', whereClause);
 
     const logs = await ActivityLog.findAndCountAll({
       where: whereClause,
@@ -283,12 +290,18 @@ router.get('/logs', adminAuth, async (req, res) => {
         model: User,
         as: 'user',
         foreignKey: 'emp_id',
-        attributes: ['name', 'email']
+        attributes: ['name', 'email', 'role_id'],
+        include: [{
+          model: Role,
+          attributes: ['role']
+        }]
       }],
       order: [['timestamp', 'DESC']],
       limit,
       offset
     });
+
+    console.log('Found logs:', logs.rows.length, 'Total:', logs.count);
 
     res.status(200).json({
       success: true,

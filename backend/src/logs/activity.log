@@ -7,3 +7,14 @@
 [2025-07-15T14:55:48.397Z] [INFO] [SubadminTask] CREATE: Added task for complaint 5 | User ID: 123
 [2025-07-15T14:56:34.071Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
 [2025-07-15T15:27:44.990Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-15T17:55:20.642Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-15T17:58:02.745Z] [INFO] [Complaint] UPDATE: Updated complaint 3 status to: InProgress | User ID: 100
+[2025-07-15T17:58:07.760Z] [INFO] [Complaint] UPDATE: Updated complaint 3 status to: Complete | User ID: 100
+[2025-07-16T00:38:56.897Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T00:49:38.487Z] [INFO] [Auth] LOGIN_FAILED: Failed login attempt for user: keshav | User ID: 382 | Details: {"email":"keshav@starkdigital.in","reason":"Invalid password"}
+[2025-07-16T00:49:46.780Z] [INFO] [Auth] LOGIN_FAILED: Failed login attempt for email: aadmin@starkdigital.in | User ID: unknown | Details: {"email":"aadmin@starkdigital.in","reason":"User not found"}
+[2025-07-16T01:00:41.695Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T01:07:13.027Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T01:11:37.366Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T01:12:14.049Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T01:21:27.734Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}

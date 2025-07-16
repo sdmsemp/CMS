@@ -29,14 +29,14 @@ export const ThemeProvider = ({ children }) => {
     palette: {
       mode: darkMode ? 'dark' : 'light',
       primary: {
-        main: '#43a047', // modern light green
+        main: '#1976d2', // modern blue
         contrastText: '#fff',
       },
       secondary: {
-        main: '#8bc34a', // lighter green
+        main: '#64b5f6', // lighter blue
       },
       background: {
-        default: darkMode ? '#121212' : '#f8fff6',
+        default: darkMode ? '#121212' : '#f4f8fd',
         paper: darkMode ? '#1e1e1e' : '#ffffff',
       },
       text: {
@@ -51,7 +51,7 @@ export const ThemeProvider = ({ children }) => {
       MuiAppBar: {
         styleOverrides: {
           root: {
-            backgroundColor: darkMode ? '#1e1e1e' : '#43a047',
+            backgroundColor: darkMode ? '#1e1e1e' : '#1976d2',
           },
         },
       },

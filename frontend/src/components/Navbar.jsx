@@ -105,51 +105,7 @@ const Navbar = () => {
             )}
 
             {isAdmin && (
-              <>
-                <Button
-                  color="inherit"
-                  onClick={handleAdminMenu}
-                  startIcon={<Assignment />}
-                >
-                  Admin
-                </Button>
-                <Menu
-                  anchorEl={adminMenuAnchor}
-                  open={Boolean(adminMenuAnchor)}
-                  onClose={handleClose}
-                >
-                  <MenuItem 
-                    component={Link}
-                    to="/admin/create-subadmin"
-                    onClick={handleClose}
-                  >
-                    <ListItemIcon>
-                      <PersonAdd fontSize="small" />
-                    </ListItemIcon>
-                    Create Subadmin
-                  </MenuItem>
-                  <MenuItem 
-                    component={Link}
-                    to="/admin/create-department"
-                    onClick={handleClose}
-                  >
-                    <ListItemIcon>
-                      <Business fontSize="small" />
-                    </ListItemIcon>
-                    Create Department
-                  </MenuItem>
-                  <MenuItem 
-                    component={Link}
-                    to="/admin/users"
-                    onClick={handleClose}
-                  >
-                    <ListItemIcon>
-                      <People fontSize="small" />
-                    </ListItemIcon>
-                    Manage Users
-                  </MenuItem>
-                </Menu>
-              </>
+              <></>
             )}
           </Box>
         )}
@@ -203,39 +159,7 @@ const Navbar = () => {
           )}
 
           {isAdmin && (
-            <>
-              <Divider />
-              <MenuItem 
-                component={Link}
-                to="/admin/create-subadmin"
-                onClick={handleClose}
-              >
-                <ListItemIcon>
-                  <PersonAdd fontSize="small" />
-                </ListItemIcon>
-                Create Subadmin
-              </MenuItem>
-              <MenuItem 
-                component={Link}
-                to="/admin/create-department"
-                onClick={handleClose}
-              >
-                <ListItemIcon>
-                  <Business fontSize="small" />
-                </ListItemIcon>
-                Create Department
-              </MenuItem>
-              <MenuItem 
-                component={Link}
-                to="/admin/users"
-                onClick={handleClose}
-              >
-                <ListItemIcon>
-                  <People fontSize="small" />
-                </ListItemIcon>
-                Manage Users
-              </MenuItem>
-            </>
+            <></>
           )}
         </Menu>
 

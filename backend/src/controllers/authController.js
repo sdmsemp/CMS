@@ -50,13 +50,26 @@ exports.register = async (req, res) => {
     }
 
     // Check if email already exists
-    const existingUser = await User.findOne({
+    const existingUserByEmail = await User.findOne({
       where: { email: req.body.email }
     });
-    if (existingUser) {
+    if (existingUserByEmail) {
+      console.log(`Registration failed: Email ${req.body.email} already exists`);
       return res.status(409).json({
         success: false,
         error: 'Email already registered'
+      });
+    }
+
+    // Check if emp_id already exists
+    const existingUserByEmpId = await User.findOne({
+      where: { emp_id: req.body.emp_id }
+    });
+    if (existingUserByEmpId) {
+      console.log(`Registration failed: Employee ID ${req.body.emp_id} already exists`);
+      return res.status(409).json({
+        success: false,
+        error: 'Employee ID already registered'
       });
     }
 
@@ -79,6 +92,9 @@ exports.register = async (req, res) => {
     // Update user's refresh token
     await user.update({ refresh_token: tokens.refreshToken });
 
+    // Log successful registration
+    console.log(`Registration successful: Employee ID ${user.emp_id}, Email ${user.email}`);
+
     res.status(201).json({
       success: true,
       data: {
@@ -94,6 +110,31 @@ exports.register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error, error.stack); // Add stack trace
+    
+    // Handle specific database errors
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      const field = error.fields ? Object.keys(error.fields)[0] : 'unknown';
+      let errorMessage = 'Duplicate entry';
+      
+      if (field === 'emp_id') {
+        errorMessage = 'Employee ID already registered';
+      } else if (field === 'email') {
+        errorMessage = 'Email already registered';
+      }
+      
+      return res.status(409).json({
+        success: false,
+        error: errorMessage
+      });
+    }
+    
+    if (error.name === 'SequelizeValidationError') {
+      return res.status(400).json({
+        success: false,
+        error: error.errors.map(e => e.message).join(', ')
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: 'Internal server error'

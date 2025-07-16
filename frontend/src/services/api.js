@@ -80,6 +80,7 @@ export const admin = {
   getAllUsers: (roleId) => api.get('/admin/users', { params: { role_id: roleId } }),
   createDepartment: (data) => api.post('/departments', data), // Updated to use correct endpoint
   getLogs: (params) => api.get('/admin/logs', { params }),
+  testLogs: () => api.get('/admin/test-logs'),
   getDepartments: () => api.get('/departments'), // Updated to use correct endpoint
   createSubadmin: (data) => api.post('/admin/subadmin', data),
   getLogFile: (lines) => api.get('/admin/log-file', { params: { lines } }),

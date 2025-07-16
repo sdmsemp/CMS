@@ -15,7 +15,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  FormHelperText
+  FormHelperText,
+  Grid,
+  Fade,
+  Slide,
+  Grow
 } from '@mui/material';
 import {
   PersonAdd,
@@ -25,7 +29,9 @@ import {
   Lock,
   Person,
   Badge,
-  Business
+  Business,
+  CheckCircle,
+  ArrowForward
 } from '@mui/icons-material';
 import { auth, departments, handleApiError } from '../../services/api';
 
@@ -44,6 +50,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [departmentList, setDepartmentList] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
+  const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
     // Fetch departments when component mounts
@@ -119,6 +126,7 @@ const Register = () => {
       
       // Show success message
       setError('');
+      setFieldErrors({});
       
       // Redirect to login since user should verify their credentials
       navigate('/login', { 
@@ -129,216 +137,390 @@ const Register = () => {
     } catch (err) {
       const errorData = handleApiError(err);
       setError(errorData.error);
+      
+      // Handle specific field errors
+      if (errorData.error) {
+        const errorMessage = errorData.error.toLowerCase();
+        const newFieldErrors = {};
+        
+        if (errorMessage.includes('employee id already registered')) {
+          newFieldErrors.empId = 'Employee ID already registered';
+        } else if (errorMessage.includes('email already registered')) {
+          newFieldErrors.email = 'Email already registered';
+        }
+        
+        setFieldErrors(newFieldErrors);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
-      <Box
-        sx={{
-          minHeight: 'auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        <Paper
-          elevation={3}
-          sx={{
-            p: 3,
-            width: '100%',
-            borderRadius: 2,
-            bgcolor: 'background.paper'
-          }}
-        >
-          <Stack spacing={2} alignItems="center">
-            <PersonAdd
-              color="primary"
-              sx={{ fontSize: 32, mb: 1 }}
-            />
-            
-            <Typography variant="h5" component="h1" gutterBottom>
-              Create Account
-            </Typography>
-
-            <Typography variant="body2" color="text.secondary" align="center">
-              Sign up to get started
-            </Typography>
-
-            {error && (
-              <Alert severity="error" onClose={() => setError('')}>
-                {error}
-              </Alert>
-            )}
-
-            <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-              <Stack spacing={2}>
-                <TextField
-                  fullWidth
-                  label="Full Name"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                  size="small"
-                  error={!!validationErrors.name}
-                  helperText={validationErrors.name}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Person color="action" />
-                      </InputAdornment>
-                    ),
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        py: 4
+      }}
+    >
+      <Container maxWidth="lg">
+        <Grid container spacing={4} alignItems="center">
+          {/* Left Side - Illustration */}
+          <Grid item xs={12} md={6}>
+            <Fade in timeout={1000}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  color: 'white'
+                }}
+              >
+                <Box
+                  component="img"
+                  src="/register-illustration.svg"
+                  alt="Registration"
+                  sx={{
+                    width: '100%',
+                    maxWidth: 500,
+                    height: 'auto',
+                    mb: 3,
+                    filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.2))'
                   }}
                 />
+                <Typography variant="h3" fontWeight="bold" gutterBottom>
+                  Welcome to CMS
+                </Typography>
+                <Typography variant="h6" sx={{ opacity: 0.9, mb: 2 }}>
+                  Join our team and start managing complaints efficiently
+                </Typography>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <CheckCircle sx={{ color: '#4CAF50' }} />
+                  <Typography variant="body1">
+                    Secure registration process
+                  </Typography>
+                </Stack>
+                <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
+                  <CheckCircle sx={{ color: '#4CAF50' }} />
+                  <Typography variant="body1">
+                    Instant access to the platform
+                  </Typography>
+                </Stack>
+              </Box>
+            </Fade>
+          </Grid>
 
-                <TextField
-                  fullWidth
-                  label="Employee ID"
-                  value={form.empId}
-                  onChange={(e) => setForm({ ...form, empId: e.target.value })}
-                  required
-                  size="small"
-                  error={!!validationErrors.empId}
-                  helperText={validationErrors.empId}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Badge color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-
-                <FormControl 
-                  fullWidth 
-                  size="small" 
-                  error={!!validationErrors.deptId}
-                >
-                  <InputLabel>Department</InputLabel>
-                  <Select
-                    value={form.deptId}
-                    label="Department"
-                    onChange={(e) => setForm({ ...form, deptId: e.target.value })}
-                    required
-                    startAdornment={
-                      <InputAdornment position="start">
-                        <Business color="action" />
-                      </InputAdornment>
-                    }
+          {/* Right Side - Registration Form */}
+          <Grid item xs={12} md={6}>
+            <Slide direction="left" in timeout={800}>
+              <Paper
+                elevation={24}
+                sx={{
+                  p: 4,
+                  borderRadius: 3,
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+                }}
+              >
+                <Stack spacing={3} alignItems="center">
+                  <Box
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mb: 2
+                    }}
                   >
-                    {departmentList.map((dept) => (
-                      <MenuItem key={dept.dept_id} value={dept.dept_id}>
-                        {dept.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {validationErrors.deptId && (
-                    <FormHelperText>{validationErrors.deptId}</FormHelperText>
+                    <PersonAdd sx={{ color: 'white', fontSize: 28 }} />
+                  </Box>
+                  
+                  <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
+                    Create Account
+                  </Typography>
+
+                  <Typography variant="body1" color="text.secondary" align="center">
+                    Join our team and start your journey
+                  </Typography>
+
+                  {error && (
+                    <Grow in timeout={300}>
+                      <Alert 
+                        severity="error" 
+                        onClose={() => setError('')}
+                        sx={{ width: '100%', borderRadius: 2 }}
+                      >
+                        {error}
+                      </Alert>
+                    </Grow>
                   )}
-                </FormControl>
 
-                <TextField
-                  fullWidth
-                  label="Email"
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                  size="small"
-                  error={!!validationErrors.email}
-                  helperText={validationErrors.email}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Email color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                  <form onSubmit={handleSubmit} style={{ width: '100%' }}>
+                    <Stack spacing={3}>
+                      <TextField
+                        fullWidth
+                        label="Full Name"
+                        value={form.name}
+                        onChange={(e) => {
+                          setForm({ ...form, name: e.target.value });
+                          if (error) setError('');
+                        }}
+                        required
+                        size="medium"
+                        error={!!validationErrors.name}
+                        helperText={validationErrors.name}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            '&:hover fieldset': {
+                              borderColor: '#667eea',
+                            },
+                          },
+                        }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Person color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
 
-                <TextField
-                  fullWidth
-                  label="Password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  required
-                  size="small"
-                  error={!!validationErrors.password}
-                  helperText={validationErrors.password}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Lock color="action" />
-                      </InputAdornment>
-                    ),
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                          size="small"
+                      <TextField
+                        fullWidth
+                        label="Employee ID"
+                        value={form.empId}
+                        onChange={(e) => {
+                          setForm({ ...form, empId: e.target.value });
+                          if (fieldErrors.empId) {
+                            setFieldErrors({ ...fieldErrors, empId: '' });
+                          }
+                          if (error) setError('');
+                        }}
+                        required
+                        size="medium"
+                        error={!!validationErrors.empId || !!fieldErrors.empId}
+                        helperText={validationErrors.empId || fieldErrors.empId}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            '&:hover fieldset': {
+                              borderColor: '#667eea',
+                            },
+                          },
+                        }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Badge color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+
+                      <FormControl 
+                        fullWidth 
+                        size="medium" 
+                        error={!!validationErrors.deptId}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            '&:hover fieldset': {
+                              borderColor: '#667eea',
+                            },
+                          },
+                        }}
+                      >
+                        <InputLabel>Department</InputLabel>
+                        <Select
+                          value={form.deptId}
+                          label="Department"
+                          onChange={(e) => {
+                            setForm({ ...form, deptId: e.target.value });
+                            if (error) setError('');
+                          }}
+                          required
+                          startAdornment={
+                            <InputAdornment position="start">
+                              <Business color="action" />
+                            </InputAdornment>
+                          }
                         >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                          {departmentList.map((dept) => (
+                            <MenuItem key={dept.dept_id} value={dept.dept_id}>
+                              {dept.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {validationErrors.deptId && (
+                          <FormHelperText>{validationErrors.deptId}</FormHelperText>
+                        )}
+                      </FormControl>
 
-                <TextField
-                  fullWidth
-                  label="Confirm Password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={form.confirmPassword}
-                  onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                  required
-                  size="small"
-                  error={!!validationErrors.confirmPassword}
-                  helperText={validationErrors.confirmPassword}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Lock color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                      <TextField
+                        fullWidth
+                        label="Email"
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => {
+                          setForm({ ...form, email: e.target.value });
+                          if (fieldErrors.email) {
+                            setFieldErrors({ ...fieldErrors, email: '' });
+                          }
+                          if (error) setError('');
+                        }}
+                        required
+                        size="medium"
+                        error={!!validationErrors.email || !!fieldErrors.email}
+                        helperText={validationErrors.email || fieldErrors.email}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            '&:hover fieldset': {
+                              borderColor: '#667eea',
+                            },
+                          },
+                        }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Email color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
 
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="medium"
-                  disabled={loading}
-                  startIcon={<PersonAdd />}
-                  fullWidth
-                >
-                  {loading ? 'Creating Account...' : 'Create Account'}
-                </Button>
-              </Stack>
-      </form>
+                      <TextField
+                        fullWidth
+                        label="Password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={form.password}
+                        onChange={(e) => {
+                          setForm({ ...form, password: e.target.value });
+                          if (error) setError('');
+                        }}
+                        required
+                        size="medium"
+                        error={!!validationErrors.password}
+                        helperText={validationErrors.password}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            '&:hover fieldset': {
+                              borderColor: '#667eea',
+                            },
+                          },
+                        }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Lock color="action" />
+                            </InputAdornment>
+                          ),
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => setShowPassword(!showPassword)}
+                                edge="end"
+                                size="small"
+                              >
+                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
 
-            <Box mt={1} textAlign="center">
-              <Typography variant="body2" color="text.secondary">
-                Already have an account?{' '}
-                <Link
-                  to="/login"
-                  style={{
-                    color: 'primary.main',
-                    textDecoration: 'none',
-                    fontWeight: 500
-                  }}
-                >
-                  Sign In
-                </Link>
-              </Typography>
-            </Box>
-          </Stack>
-        </Paper>
-      </Box>
-    </Container>
+                      <TextField
+                        fullWidth
+                        label="Confirm Password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={form.confirmPassword}
+                        onChange={(e) => {
+                          setForm({ ...form, confirmPassword: e.target.value });
+                          if (error) setError('');
+                        }}
+                        required
+                        size="medium"
+                        error={!!validationErrors.confirmPassword}
+                        helperText={validationErrors.confirmPassword}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            '&:hover fieldset': {
+                              borderColor: '#667eea',
+                            },
+                          },
+                        }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Lock color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        size="large"
+                        disabled={loading}
+                        endIcon={loading ? null : <ArrowForward />}
+                        fullWidth
+                        sx={{
+                          mt: 2,
+                          py: 1.5,
+                          borderRadius: 2,
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          '&:hover': {
+                            background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)',
+                          },
+                          transition: 'all 0.3s ease',
+                        }}
+                      >
+                        {loading ? 'Creating Account...' : 'Create Account'}
+                      </Button>
+                    </Stack>
+                  </form>
+
+                  <Box mt={2} textAlign="center">
+                    <Typography variant="body2" color="text.secondary">
+                      Already have an account?{' '}
+                      <Link
+                        to="/login"
+                        style={{
+                          color: '#667eea',
+                          textDecoration: 'none',
+                          fontWeight: 600,
+                          '&:hover': {
+                            textDecoration: 'underline',
+                          },
+                        }}
+                      >
+                        Sign In
+                      </Link>
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+            </Slide>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
 };
 

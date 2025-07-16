@@ -265,7 +265,7 @@ const Dashboard = () => {
   const filteredComplaints = complaintsList.filter(complaint =>
     complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     complaint.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    complaint.user?.name.toLowerCase().includes(searchTerm.toLowerCase())
+    complaint.User?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Filter activity logs based on search term
@@ -786,7 +786,7 @@ const Dashboard = () => {
 
                           <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
                             <Typography variant="body2" color="text.secondary">
-                              <strong>By:</strong> {complaint.user?.name || 'Unknown'}
+                              <strong>By:</strong> {complaint.User?.name || 'Unknown'}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                               {formatDate(complaint.created_at)}
@@ -1223,7 +1223,7 @@ const Dashboard = () => {
                     Submitted By
                   </Typography>
                   <Typography variant="body1">
-                    {selectedComplaint.user?.name || 'Unknown'}
+                    {selectedComplaint.User?.name || 'Unknown'}
                 </Typography>
                 </Grid>
                 

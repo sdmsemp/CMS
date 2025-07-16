@@ -92,16 +92,7 @@ const Navbar = () => {
             </Button>
 
             {isEmployee && (
-              <>
-                <Button
-                  color="inherit"
-                  component={Link}
-                  to="/user/complaints"
-                  startIcon={<Report />}
-                >
-                  Complaints
-                </Button>
-              </>
+              <></>
             )}
 
             {isAdmin && (
@@ -143,19 +134,7 @@ const Navbar = () => {
           </MenuItem>
           
           {isEmployee && (
-            <>
-              <Divider />
-              <MenuItem 
-                component={Link}
-                to="/user/complaints"
-                onClick={handleClose}
-              >
-                <ListItemIcon>
-                  <Report fontSize="small" />
-                </ListItemIcon>
-                Complaints
-              </MenuItem>
-            </>
+            <></>
           )}
 
           {isAdmin && (

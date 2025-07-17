@@ -18,11 +18,13 @@ import {
   Email,
   Badge,
   Business,
-  CalendarToday
+  CalendarToday,
+  Notifications
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { auth } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
+import PushNotificationToggle from '../../components/PushNotificationToggle';
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
@@ -186,6 +188,20 @@ const Profile = () => {
                     <strong>Department:</strong> {profile?.Department?.name || 'N/A'}
                   </Typography>
                 </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Card variant="outlined">
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Notifications sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="h6" color="primary">
+                    Push Notifications
+                  </Typography>
+                </Box>
+                <PushNotificationToggle />
               </CardContent>
             </Card>
           </Grid>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Push Notification Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 Push Notification Test</h1>
+        
+        <div id="status" class="status info">
+            Initializing...
+        </div>
+
+        <div>
+            <button id="subscribeBtn" onclick="subscribeToPush()">Subscribe to Push Notifications</button>
+            <button id="unsubscribeBtn" onclick="unsubscribeFromPush()" disabled>Unsubscribe</button>
+            <button id="testBtn" onclick="testNotification()" disabled>Test Notification</button>
+        </div>
+
+        <div class="log" id="log">
+            <div>Push notification test log will appear here...</div>
+        </div>
+
+        <div>
+            <h3>Test Instructions:</h3>
+            <ol>
+                <li>Click "Subscribe to Push Notifications" to enable push notifications</li>
+                <li>Allow notifications when prompted by the browser</li>
+                <li>Click "Test Notification" to send a test notification</li>
+                <li>Check the browser notifications and service worker logs</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        let vapidPublicKey = '';
+        let subscription = null;
+        let registration = null;
+
+        // Log function
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span style="color: #666;">[${timestamp}]</span> ${message}`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        // Update status
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        // Convert VAPID key to Uint8Array
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        // Get VAPID public key from server
+        async function getVapidPublicKey() {
+            try {
+                log('Getting VAPID public key from server...');
+                const response = await fetch('http://localhost:5000/api/push/vapid-public-key');
+                const data = await response.json();
+                
+                if (data.success) {
+                    vapidPublicKey = data.data.publicKey;
+                    log(`✅ VAPID public key received: ${vapidPublicKey.substring(0, 50)}...`);
+                    return vapidPublicKey;
+                } else {
+                    throw new Error('Failed to get VAPID public key');
+                }
+            } catch (error) {
+                log(`❌ Error getting VAPID public key: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        // Register service worker
+        async function registerServiceWorker() {
+            try {
+                log('Registering service worker...');
+                registration = await navigator.serviceWorker.register('/sw.js');
+                log('✅ Service worker registered successfully');
+                return registration;
+            } catch (error) {
+                log(`❌ Service worker registration failed: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        // Subscribe to push notifications
+        async function subscribeToPush() {
+            try {
+                updateStatus('Subscribing to push notifications...', 'info');
+                
+                // Check if push notifications are supported
+                if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                    throw new Error('Push notifications are not supported in this browser');
+                }
+
+                // Get VAPID public key
+                await getVapidPublicKey();
+
+                // Register service worker
+                await registerServiceWorker();
+
+                // Request notification permission
+                log('Requesting notification permission...');
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    throw new Error('Notification permission denied');
+                }
+                log('✅ Notification permission granted');
+
+                // Subscribe to push notifications
+                log('Subscribing to push notifications...');
+                const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: applicationServerKey
+                });
+                log('✅ Push subscription created');
+
+                // Save subscription to server
+                log('Saving subscription to server...');
+                const saveResponse = await fetch('http://localhost:5000/api/push/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer test-token' // In real app, use actual token
+                    },
+                    body: JSON.stringify({ subscription })
+                });
+
+                if (saveResponse.ok) {
+                    log('✅ Subscription saved to server');
+                    updateStatus('Successfully subscribed to push notifications!', 'success');
+                    
+                    // Enable test button
+                    document.getElementById('testBtn').disabled = false;
+                    document.getElementById('subscribeBtn').disabled = true;
+                    document.getElementById('unsubscribeBtn').disabled = false;
+                } else {
+                    throw new Error('Failed to save subscription to server');
+                }
+
+            } catch (error) {
+                log(`❌ Subscription failed: ${error.message}`, 'error');
+                updateStatus(`Subscription failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Unsubscribe from push notifications
+        async function unsubscribeFromPush() {
+            try {
+                updateStatus('Unsubscribing from push notifications...', 'info');
+                
+                if (subscription) {
+                    // Unsubscribe from push manager
+                    await subscription.unsubscribe();
+                    log('✅ Unsubscribed from push manager');
+
+                    // Remove from server
+                    const response = await fetch('http://localhost:5000/api/push/unsubscribe', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer test-token'
+                        },
+                        body: JSON.stringify({ endpoint: subscription.endpoint })
+                    });
+
+                    if (response.ok) {
+                        log('✅ Subscription removed from server');
+                        subscription = null;
+                        updateStatus('Successfully unsubscribed from push notifications', 'success');
+                        
+                        // Update button states
+                        document.getElementById('testBtn').disabled = true;
+                        document.getElementById('subscribeBtn').disabled = false;
+                        document.getElementById('unsubscribeBtn').disabled = true;
+                    } else {
+                        throw new Error('Failed to remove subscription from server');
+                    }
+                }
+            } catch (error) {
+                log(`❌ Unsubscribe failed: ${error.message}`, 'error');
+                updateStatus(`Unsubscribe failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Test notification
+        async function testNotification() {
+            try {
+                updateStatus('Sending test notification...', 'info');
+                log('Sending test notification...');
+                
+                // Show a local notification
+                if ('serviceWorker' in navigator && 'showNotification' in ServiceWorkerRegistration.prototype) {
+                    await registration.showNotification('Test Notification', {
+                        body: 'This is a test notification from the CMS system!',
+                        icon: '/vite.svg',
+                        badge: '/vite.svg',
+                        tag: 'test-notification',
+                        data: {
+                            test: true,
+                            timestamp: new Date().toISOString()
+                        },
+                        actions: [
+                            {
+                                action: 'view',
+                                title: 'View'
+                            },
+                            {
+                                action: 'dismiss',
+                                title: 'Dismiss'
+                            }
+                        ]
+                    });
+                    log('✅ Local test notification sent');
+                }
+
+                // Try to send a server notification (this will fail without proper auth)
+                try {
+                    const response = await fetch('http://localhost:5000/api/push/test', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer test-token'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        log('✅ Server test notification sent');
+                    } else {
+                        log('⚠️ Server test notification failed (expected without proper auth)');
+                    }
+                } catch (error) {
+                    log('⚠️ Server test notification failed (expected without proper auth)');
+                }
+
+                updateStatus('Test notification sent! Check your browser notifications.', 'success');
+                
+            } catch (error) {
+                log(`❌ Test notification failed: ${error.message}`, 'error');
+                updateStatus(`Test notification failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            log('Push notification test page loaded');
+            updateStatus('Ready to test push notifications', 'info');
+            
+            // Check if push notifications are supported
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                updateStatus('Push notifications are not supported in this browser', 'error');
+                document.getElementById('subscribeBtn').disabled = true;
+            }
+        });
+
+        // Listen for service worker messages
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                log(`Service worker message: ${JSON.stringify(event.data)}`);
+            });
+        }
+    </script>
+</body>
+</html> 

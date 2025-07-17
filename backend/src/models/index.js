@@ -6,6 +6,7 @@ const Complaint = require('./complaintModel');
 const SubadminTask = require('./subadminTaskModel');
 const ActivityLog = require('./activityLogModel');
 const Notification = require('./notificationModel');
+const PushSubscription = require('./pushSubscriptionModel');
 
 // User-Role Association
 User.belongsTo(Role, { foreignKey: 'role_id' });
@@ -43,6 +44,10 @@ User.hasMany(ActivityLog, { foreignKey: 'emp_id' });
 User.hasMany(Notification, { foreignKey: 'emp_id' });
 Notification.belongsTo(User, { foreignKey: 'emp_id' });
 
+// User - PushSubscription Association
+User.hasMany(PushSubscription, { foreignKey: 'emp_id' });
+PushSubscription.belongsTo(User, { foreignKey: 'emp_id' });
+
 const db = {
   sequelize,
   User,
@@ -51,7 +56,8 @@ const db = {
   Complaint,
   SubadminTask,
   ActivityLog,
-  Notification
+  Notification,
+  PushSubscription
 };
 
 module.exports = db; 

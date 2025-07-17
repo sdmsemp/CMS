@@ -135,3 +135,28 @@
 [2025-07-16T09:20:28.648Z] [INFO] [Auth] LOGIN: User logged in successfully: emp2 (emp2@starkdigital.in) | User ID: 108 | Details: {"email":"emp2@starkdigital.in","role":"Unknown","department":"Unknown"}
 [2025-07-16T09:21:26.755Z] [INFO] [Auth] LOGIN: User logged in successfully: subadminIT (subadminIT@starkdigital.in) | User ID: 101 | Details: {"email":"subadminIT@starkdigital.in","role":"Unknown","department":"Unknown"}
 [2025-07-16T09:25:00.851Z] [INFO] [SubadminTask] CREATE: Added task for complaint 6 | User ID: 101
+[2025-07-16T09:29:21.432Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T09:33:10.656Z] [INFO] [Auth] LOGIN_FAILED: Failed login attempt for email: subadminHR@starkdigital.in | User ID: unknown | Details: {"email":"subadminHR@starkdigital.in","reason":"User not found"}
+[2025-07-16T09:33:19.486Z] [INFO] [Auth] LOGIN_FAILED: Failed login attempt for email: subadminhr@starkdigital.in | User ID: unknown | Details: {"email":"subadminhr@starkdigital.in","reason":"User not found"}
+[2025-07-16T09:33:32.738Z] [INFO] [Auth] LOGIN: User logged in successfully: subadminFinance (subadminFinance@starkdigital.in) | User ID: 103 | Details: {"email":"subadminFinance@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T09:33:54.500Z] [INFO] [Auth] LOGIN_FAILED: Failed login attempt for email: subadminFinace@starkdigital.in | User ID: unknown | Details: {"email":"subadminFinace@starkdigital.in","reason":"User not found"}
+[2025-07-16T09:34:01.365Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T09:34:54.965Z] [INFO] [Auth] LOGIN: User logged in successfully: subadminIT (subadminIT@starkdigital.in) | User ID: 101 | Details: {"email":"subadminIT@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-16T09:34:59.993Z] [INFO] [Complaint] UPDATE: Updated complaint 6 status to: Complete | User ID: 101
+[2025-07-16T09:35:19.526Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-17T04:56:06.031Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-17T06:15:06.061Z] [INFO] [Auth] LOGIN: User logged in successfully: Super Admin (admin@starkdigital.in) | User ID: 100 | Details: {"email":"admin@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-17T06:15:13.361Z] [INFO] [Auth] LOGIN_FAILED: Failed login attempt for email: abhi@starkdigital.in | User ID: unknown | Details: {"email":"abhi@starkdigital.in","reason":"User not found"}
+[2025-07-17T06:15:16.645Z] [INFO] [Auth] LOGIN_FAILED: Failed login attempt for email: om@starkdigital.in | User ID: unknown | Details: {"email":"om@starkdigital.in","reason":"User not found"}
+[2025-07-17T06:15:21.393Z] [INFO] [Auth] LOGIN_FAILED: Failed login attempt for email: soham@starkdigital.in | User ID: unknown | Details: {"email":"soham@starkdigital.in","reason":"User not found"}
+[2025-07-17T06:16:15.421Z] [INFO] [Auth] LOGIN: User logged in successfully: subadminIT (subadminIT@starkdigital.in) | User ID: 101 | Details: {"email":"subadminIT@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-17T06:18:01.327Z] [INFO] [Auth] LOGIN: User logged in successfully: soham (soham@starkdigital.in) | User ID: 453 | Details: {"email":"soham@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-17T06:18:46.829Z] [INFO] [Complaint] CREATE: Complaint created: "hello" | User ID: 453 | Details: {"complaint_id":7,"title":"hello","severity":"medium","department_id":1,"status":"Pending"}
+[2025-07-17T06:18:59.913Z] [INFO] [Auth] LOGIN: User logged in successfully: subadminIT (subadminIT@starkdigital.in) | User ID: 101 | Details: {"email":"subadminIT@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-17T06:19:39.729Z] [INFO] [Auth] LOGIN: User logged in successfully: soham (soham@starkdigital.in) | User ID: 453 | Details: {"email":"soham@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-17T06:19:53.191Z] [INFO] [Complaint] CREATE: Complaint created: "hello " | User ID: 453 | Details: {"complaint_id":8,"title":"hello ","severity":"high","department_id":1,"status":"Pending"}
+[2025-07-17T06:20:11.069Z] [INFO] [Auth] LOGIN: User logged in successfully: subadminIT (subadminIT@starkdigital.in) | User ID: 101 | Details: {"email":"subadminIT@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-17T06:20:31.435Z] [INFO] [Auth] LOGIN: User logged in successfully: soham (soham@starkdigital.in) | User ID: 453 | Details: {"email":"soham@starkdigital.in","role":"Unknown","department":"Unknown"}
+[2025-07-17T06:20:43.049Z] [INFO] [Complaint] CREATE: Complaint created: "free " | User ID: 453 | Details: {"complaint_id":9,"title":"free ","severity":"low","department_id":1,"status":"Pending"}
+[2025-07-17T06:21:15.841Z] [INFO] [Complaint] CREATE: Complaint created: "sfdga" | User ID: 453 | Details: {"complaint_id":10,"title":"sfdga","severity":"high","department_id":1,"status":"Pending"}
+[2025-07-17T06:22:13.816Z] [INFO] [Complaint] CREATE: Complaint created: "subadminIt@starkdigital.i" | User ID: 453 | Details: {"complaint_id":11,"title":"subadminIt@starkdigital.i","severity":"low","department_id":1,"status":"Pending"}

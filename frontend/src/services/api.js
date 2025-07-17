@@ -140,6 +140,13 @@ export const notifications = {
   getAll: (params) => api.get('/notifications', { params }),
 };
 
+// Push notification endpoints
+export const push = {
+  getVapidPublicKey: () => api.get('/push/vapid-public-key'),
+  subscribe: (data) => api.post('/push/subscribe', data),
+  unsubscribe: (data) => api.post('/push/unsubscribe', data),
+};
+
 // Helper function to handle API errors
 export const handleApiError = (error) => {
   if (error.response?.data) {

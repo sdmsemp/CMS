@@ -2,6 +2,7 @@ const Complaint = require('../models/complaintModel');
 const User = require('../models/userModel');
 const { createActivityLog } = require('../utils/activityLogger');
 const { createComplaintNotification } = require('./notificationController');
+const { sendNotificationToDepartmentSubadmin } = require('../utils/pushNotificationService');
 const { Op } = require('sequelize');
 
 /**
@@ -51,6 +52,36 @@ const createComplaint = async (req, res) => {
     if (subadmin) {
       // Send notification to subadmin
       await createComplaintNotification(complaint, subadmin.emp_id);
+      
+      // Send push notification to department subadmin
+      try {
+        await sendNotificationToDepartmentSubadmin(complaint.dept_id, {
+          title: 'New Complaint Assigned',
+          body: `A new ${complaint.severity} priority complaint has been assigned to your department.`,
+          icon: '/vite.svg',
+          badge: '/vite.svg',
+          data: {
+            complaint_id: complaint.complaint_id,
+            title: complaint.title,
+            severity: complaint.severity,
+            department_id: complaint.dept_id
+          },
+          tag: `complaint-${complaint.complaint_id}`,
+          actions: [
+            {
+              action: 'view',
+              title: 'View Complaint'
+            },
+            {
+              action: 'dismiss',
+              title: 'Dismiss'
+            }
+          ]
+        });
+      } catch (pushError) {
+        console.error('Failed to send push notification:', pushError);
+        // Don't fail the complaint creation if push notification fails
+      }
     }
 
     // Log complaint creation

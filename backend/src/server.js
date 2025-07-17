@@ -14,6 +14,7 @@ const roleRoutes = require('./routes/roleRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const subadminTaskRoutes = require('./routes/subadminTaskRoutes');
+const pushNotificationRoutes = require('./routes/pushNotificationRoutes');
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use('/api/roles', roleRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/subadmin', subadminTaskRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/push', pushNotificationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
